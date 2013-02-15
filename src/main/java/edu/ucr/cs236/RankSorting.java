@@ -4,8 +4,9 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -19,8 +20,6 @@ public class RankSorting {
 
 		Job job = new Job(new Configuration(), "FaginAlgorithm");
 		job.setJarByClass(getClass());
-
-		// job.getConfiguration().set("textinputformat.record.delimiter", "\n");
 
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
@@ -38,7 +37,12 @@ public class RankSorting {
 		job.setGroupingComparatorClass(RankSortingGroupingComparator.class);
 		job.setPartitionerClass(RankSortingPartitioner.class);
 
+//		job.setNumReduceTasks(3);
 		return job;
+	}
+
+	public static class IdentityMapper extends Mapper<Text, Text, Text, Text> {
+
 	}
 
 	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
@@ -68,7 +72,8 @@ public class RankSorting {
 			for (Text t : values)
 				sb.append(t).append(",");
 			sb.setLength(sb.length() - 1);
-			context.write(new Text(key.toString().substring(0, key.find(":"))), new Text(sb.toString()));
+			String propertyName = key.toString().substring(0, key.find(":"));
+			context.write(new Text(propertyName), new Text(sb.toString()));
 		}
 	}
 
@@ -76,41 +81,42 @@ public class RankSorting {
 	 * @author iabsalyamov This comparator implement sorting of the values in
 	 *         reducer's iterator according to object's rank
 	 */
-	public static final class RankSortingKeyComparator implements RawComparator<Text> {
+	public static final class RankSortingKeyComparator extends WritableComparator {
+		protected RankSortingKeyComparator() {
+			super(Text.class, true);
+		}
 
 		@Override
-		public int compare(Text o1, Text o2) {
-			String o1Name = o1.toString().substring(0, o1.toString().indexOf(":"));
-			String o2Name = o2.toString().substring(0, o2.toString().indexOf(":"));
+		public int compare(WritableComparable a, WritableComparable b) {
+			Text t1 = (Text) a;
+			Text t2 = (Text) b;
 
-			int nameCompare = o1Name.compareTo(o2Name);
+			String[] o1Items = t1.toString().split(":");
+			String[] o2Items = t2.toString().split(":");
+
+			int nameCompare = o1Items[0].compareTo(o2Items[0]);
 			if (nameCompare == 0) {
-				Float o1Rank = Float.parseFloat(o1.toString().substring(o1.toString().indexOf(":") + 1));
-				Float o2Rank = Float.parseFloat(o2.toString().substring(o2.toString().indexOf(":") + 1));
-				return -1 * o1Rank.compareTo(o2Rank);
+				return -1 * Float.valueOf(o1Items[1]).compareTo(Float.valueOf(o2Items[1]));
 			}
 			return nameCompare;
 		}
 
-		@Override
-		public int compare(byte[] arg0, int arg1, int arg2, byte[] arg3, int arg4, int arg5) {
-			return 0;
-		}
-
 	}
 
-	public static final class RankSortingGroupingComparator implements RawComparator<Text> {
+	public static final class RankSortingGroupingComparator extends WritableComparator {
 
-		@Override
-		public int compare(Text o1, Text o2) {
-			String o1Name = o1.toString().substring(0, o1.toString().indexOf(":"));
-			String o2Name = o2.toString().substring(0, o2.toString().indexOf(":"));
-			return o1Name.compareTo(o2Name);
+		protected RankSortingGroupingComparator() {
+			super(Text.class, true);
 		}
 
 		@Override
-		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-			return 0;
+		public int compare(WritableComparable a, WritableComparable b) {
+			Text t1 = (Text) a;
+			Text t2 = (Text) b;
+			String[] o1Items = t1.toString().split(":");
+			String[] o2Items = t2.toString().split(":");
+
+			return o1Items[0].compareTo(o2Items[0]);
 		}
 	}
 
@@ -118,7 +124,7 @@ public class RankSorting {
 
 		@Override
 		public int getPartition(Text key, Text value, int numPartitions) {
-			String name = key.toString().substring(0, key.toString().indexOf(":") - 1);
+			String name = key.toString().substring(0, key.toString().indexOf(":"));
 			return name.hashCode() % numPartitions;
 		}
 
