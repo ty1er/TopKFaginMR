@@ -41,10 +41,6 @@ public class RankSorting {
 		return job;
 	}
 
-	public static class IdentityMapper extends Mapper<Text, Text, Text, Text> {
-
-	}
-
 	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 		@Override
