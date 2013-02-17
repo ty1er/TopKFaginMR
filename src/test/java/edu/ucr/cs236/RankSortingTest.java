@@ -103,9 +103,6 @@ public class RankSortingTest {
 		mapReduceDriver.withOutput(new Text("o2"), new Text("0.8"));
 		mapReduceDriver.withOutput(new Text("o2"), new Text("0.95"));
 		mapReduceDriver.withOutput(new Text("o1"), new Text("0.7"));
-//		mapReduceDriver.withOutput(new Text("p1"), new Text("o2:1,o1:0.9"));
-//		mapReduceDriver.withOutput(new Text("p2"), new Text("o1:0.8,o2:0.8"));
-//		mapReduceDriver.withOutput(new Text("p3"), new Text("o2:0.95,o1:0.7"));
 		mapReduceDriver.runTest();
 	}
 }

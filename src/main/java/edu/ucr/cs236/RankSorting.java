@@ -41,16 +41,11 @@ public class RankSorting {
 		return job;
 	}
 
-	public static class IdentityMapper extends Mapper<Text, Text, Text, Text> {
-
-	}
-
 	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String[] object = value.toString().split("\t");
-			context.getConfiguration().setInt("mapred.reduce.tasks", object.length - 1);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 1; i < object.length; i++) {
 				if (object[i] != null && object[i] != "") {
