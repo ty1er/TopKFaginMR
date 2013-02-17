@@ -7,19 +7,20 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
+import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class RankSorting {
 
-	public Job createJob() throws IOException {
+	public static Job createJob() throws IOException {
 
-		Job job = new Job(new Configuration(), "FaginAlgorithm");
-		job.setJarByClass(getClass());
+		Job job = Job.getInstance(new Configuration(), "RankSorting"); //new Job(new Configuration(), "RankSorting");
+		job.setJarByClass(RankSorting.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
@@ -37,7 +38,6 @@ public class RankSorting {
 		job.setGroupingComparatorClass(RankSortingGroupingComparator.class);
 		job.setPartitionerClass(RankSortingPartitioner.class);
 
-//		job.setNumReduceTasks(3);
 		return job;
 	}
 
@@ -50,6 +50,7 @@ public class RankSorting {
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String[] object = value.toString().split("\t");
+			context.getConfiguration().setInt("mapred.reduce.tasks", object.length - 1);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 1; i < object.length; i++) {
 				if (object[i] != null && object[i] != "") {
@@ -65,15 +66,10 @@ public class RankSorting {
 	}
 
 	public static class RankSortingReducer extends Reducer<Text, Text, Text, Text> {
-
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
-			StringBuilder sb = new StringBuilder();
 			for (Text t : values)
-				sb.append(t).append(",");
-			sb.setLength(sb.length() - 1);
-			String propertyName = key.toString().substring(0, key.find(":"));
-			context.write(new Text(propertyName), new Text(sb.toString()));
+				context.write(new Text(t.toString().substring(0, key.find(":"))), new Text(t.toString().substring(key.find(":") + 1)));
 		}
 	}
 
