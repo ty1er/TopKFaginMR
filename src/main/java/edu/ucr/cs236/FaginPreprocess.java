@@ -55,6 +55,7 @@ public class FaginPreprocess {
 			StringBuffer sb = new StringBuffer();
 			for (Text value : values)
 				sb.append(value.toString()).append(";");
+			sb.deleteCharAt(sb.length() - 1);
 			context.write(new Text(key.toString().substring(0, key.toString().indexOf(":"))), new Text(sb.toString()));
 		}
 	}
