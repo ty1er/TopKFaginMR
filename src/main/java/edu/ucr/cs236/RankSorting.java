@@ -3,6 +3,7 @@ package edu.ucr.cs236;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
@@ -28,13 +29,13 @@ public class RankSorting {
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 
-		job.setOutputKeyClass(Text.class);
+		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(RankSortingMapper.class);
 		job.setReducerClass(RankSortingReducer.class);
 
-		job.setSortComparatorClass(RankSortingKeyComparator.class);
+		job.setSortComparatorClass(RankSortingReduceKeyComparator.class);
 		job.setGroupingComparatorClass(RankSortingGroupingComparator.class);
 		job.setPartitionerClass(RankSortingPartitioner.class);
 
@@ -60,11 +61,12 @@ public class RankSorting {
 
 	}
 
-	public static class RankSortingReducer extends Reducer<Text, Text, Text, Text> {
+	public static class RankSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
+			int i =0 ;
 			for (Text t : values)
-				context.write(new Text(key.toString().substring(0, key.find(":"))), t);
+				context.write(new IntWritable(i++),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
 		}
 	}
 
@@ -72,8 +74,8 @@ public class RankSorting {
 	 * @author iabsalyamov This comparator implement sorting of the values in
 	 *         reducer's iterator according to object's rank
 	 */
-	public static final class RankSortingKeyComparator extends WritableComparator {
-		protected RankSortingKeyComparator() {
+	public static final class RankSortingReduceKeyComparator extends WritableComparator {
+		protected RankSortingReduceKeyComparator() {
 			super(Text.class, true);
 		}
 

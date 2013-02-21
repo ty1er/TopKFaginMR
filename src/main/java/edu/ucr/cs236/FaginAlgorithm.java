@@ -6,7 +6,9 @@ import java.util.Collections;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.client.HdfsUtils;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
@@ -22,19 +24,29 @@ public class FaginAlgorithm extends Configured implements Tool {
 	}
 
 	public int run(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+		
 		Job sortingJob = RankSorting.createJob();
-		setConf(sortingJob.getConfiguration());
+//		setConf(sortingJob.getConfiguration());
+		
+		FileSystem hdfs = FileSystem.get(sortingJob.getConfiguration());
 		FileInputFormat.addInputPath(sortingJob, new Path(args[0]));
-		FileOutputFormat.setOutputPath(sortingJob, new Path("/tmp/fagin"));
+		Path outputPath1 = new Path(args[1] + "/sorting");
+		if (hdfs.exists(outputPath1))
+			hdfs.delete(outputPath1, true);
+		FileOutputFormat.setOutputPath(sortingJob, new Path(args[1] + "/sorting"));
 		sortingJob.setNumReduceTasks(Integer.parseInt(args[2]));
 		
-		Job algorithmStepJob = FaginStep.createJob();
-		FileInputFormat.addInputPath(algorithmStepJob, new Path("/tmp/fagin"));
-		FileOutputFormat.setOutputPath(algorithmStepJob, new Path(args[1]));
-		algorithmStepJob.setNumReduceTasks(Integer.parseInt(args[2]));
+		Job preprocessStepJob = FaginPreprocess.createJob();
+		Path outputPath2 = new Path(args[1] + "/fagin");
+		if (hdfs.exists(outputPath2))
+			hdfs.delete(outputPath2, true);
+		FileOutputFormat.setOutputPath(sortingJob, outputPath1);
+		FileInputFormat.addInputPath(preprocessStepJob, outputPath1);
+		FileOutputFormat.setOutputPath(preprocessStepJob, outputPath2);
+//		preprocessStepJob.setNumReduceTasks(Integer.parseInt(args[2]));
 		
 		ControlledJob controlledSortingJob = new ControlledJob(sortingJob.getConfiguration());
-		ControlledJob controlledAlgorithmStepJob = new ControlledJob(algorithmStepJob.getConfiguration());
+		ControlledJob controlledAlgorithmStepJob = new ControlledJob(preprocessStepJob.getConfiguration());
 
 		controlledAlgorithmStepJob.addDependingJob(controlledSortingJob);
 
