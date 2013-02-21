@@ -29,30 +29,39 @@ public class FaginAlgorithm extends Configured implements Tool {
 //		setConf(sortingJob.getConfiguration());
 		
 		FileSystem hdfs = FileSystem.get(sortingJob.getConfiguration());
-		FileInputFormat.addInputPath(sortingJob, new Path(args[0]));
 		Path outputPath1 = new Path(args[1] + "/sorting");
 		if (hdfs.exists(outputPath1))
 			hdfs.delete(outputPath1, true);
-		FileOutputFormat.setOutputPath(sortingJob, new Path(args[1] + "/sorting"));
+		FileInputFormat.addInputPath(sortingJob, new Path(args[0]));
+		FileOutputFormat.setOutputPath(sortingJob, outputPath1);
 		sortingJob.setNumReduceTasks(Integer.parseInt(args[2]));
 		
-		Job preprocessStepJob = FaginPreprocess.createJob();
-		Path outputPath2 = new Path(args[1] + "/fagin");
+		Job preprocessJob = FaginPreprocess.createJob();
+		Path outputPath2 = new Path(args[1] + "/preprocess");
 		if (hdfs.exists(outputPath2))
 			hdfs.delete(outputPath2, true);
-		FileOutputFormat.setOutputPath(sortingJob, outputPath1);
-		FileInputFormat.addInputPath(preprocessStepJob, outputPath1);
-		FileOutputFormat.setOutputPath(preprocessStepJob, outputPath2);
+		FileInputFormat.addInputPath(preprocessJob, outputPath1);
+		FileOutputFormat.setOutputPath(preprocessJob, outputPath2);
+		
+		Job faginStepJob = FaginStep.createJob();
+		Path outputPath3 = new Path(args[1] + "/faginStep");
+		if (hdfs.exists(outputPath3))
+			hdfs.delete(outputPath3, true);
+		FileInputFormat.addInputPath(faginStepJob, outputPath2);
+		FileOutputFormat.setOutputPath(faginStepJob, outputPath3);
 //		preprocessStepJob.setNumReduceTasks(Integer.parseInt(args[2]));
 		
 		ControlledJob controlledSortingJob = new ControlledJob(sortingJob.getConfiguration());
-		ControlledJob controlledAlgorithmStepJob = new ControlledJob(preprocessStepJob.getConfiguration());
+		ControlledJob controlledPreprocessJob = new ControlledJob(preprocessJob.getConfiguration());
+		ControlledJob controlledFaginStepJob = new ControlledJob(faginStepJob.getConfiguration());
 
-		controlledAlgorithmStepJob.addDependingJob(controlledSortingJob);
+		controlledPreprocessJob.addDependingJob(controlledSortingJob);
+		controlledFaginStepJob.addDependingJob(controlledPreprocessJob);
 
 		JobControl jc = new JobControl("FaginAlgorithm");
 		jc.addJob(controlledSortingJob);
-		jc.addJob(controlledAlgorithmStepJob);
+		jc.addJob(controlledPreprocessJob);
+		jc.addJob(controlledFaginStepJob);
 
 		Thread runjobc = new Thread(jc);
 		runjobc.start();
