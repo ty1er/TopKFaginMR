@@ -3,7 +3,6 @@ package edu.ucr.cs236;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
@@ -11,9 +10,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class FaginPreprocess {
@@ -85,16 +82,16 @@ public class FaginPreprocess {
 		}
 
 		@Override
-		public int compare(Object a, Object b) {
+		public int compare(WritableComparable a, WritableComparable b) {
 			Text t1 = (Text) a;
 			Text t2 = (Text) b;
 
 			String[] o1Items = t1.toString().split(":");
 			String[] o2Items = t2.toString().split(":");
 
-			int nameCompare = o1Items[0].compareTo(o2Items[0]);
+			int nameCompare = Integer.valueOf(o1Items[0]).compareTo(Integer.valueOf(o2Items[0]));
 			if (nameCompare == 0) {
-				return -1 * Float.valueOf(o1Items[1]).compareTo(Float.valueOf(o2Items[1]));
+				return -1 * o1Items[1].compareTo(o2Items[1]);
 			}
 			return nameCompare;
 		}
