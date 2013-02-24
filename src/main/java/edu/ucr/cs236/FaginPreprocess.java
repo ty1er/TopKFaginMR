@@ -53,7 +53,11 @@ public class FaginPreprocess {
 			for (Text value : values)
 				sb.append(value.toString()).append(";");
 			sb.deleteCharAt(sb.length() - 1);
-			context.write(new Text(key.toString().substring(0, key.toString().indexOf(":"))), new Text(sb.toString()));
+			Integer lineNum = Integer.valueOf(key.toString().substring(0, key.toString().indexOf(":")));
+			context.write(new Text(lineNum.toString()), new Text(sb.toString()));
+			//producing extra line with lineNum 0 to store objects seen so far
+			if (lineNum.equals(1))
+				context.write(new Text("0"), new Text());
 		}
 	}
 
