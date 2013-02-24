@@ -3,6 +3,7 @@ package edu.ucr.cs236;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
@@ -11,7 +12,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 public class FaginPreprocess {
 	public static Job createJob() throws IOException {
@@ -19,12 +20,12 @@ public class FaginPreprocess {
 		job.setJarByClass(RankSorting.class);
 
 		job.setInputFormatClass(KeyValueTextInputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 
-		job.setOutputKeyClass(Text.class);
+		job.setOutputKeyClass(LongWritable.class);
 		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(FaginPreprocessMapper.class);
@@ -45,7 +46,7 @@ public class FaginPreprocess {
 		}
 	}
 
-	public static class FaginPreprocessReducer extends Reducer<Text, Text, Text, Text> {
+	public static class FaginPreprocessReducer extends Reducer<Text, Text, LongWritable, Text> {
 
 		@Override
 		protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -53,11 +54,11 @@ public class FaginPreprocess {
 			for (Text value : values)
 				sb.append(value.toString()).append(";");
 			sb.deleteCharAt(sb.length() - 1);
-			Integer lineNum = Integer.valueOf(key.toString().substring(0, key.toString().indexOf(":")));
-			context.write(new Text(lineNum.toString()), new Text(sb.toString()));
+			Long lineNum = Long.valueOf(key.toString().substring(0, key.toString().indexOf(":")));
+			context.write(new LongWritable(lineNum), new Text(sb.toString()));
 			//producing extra line with lineNum 0 to store objects seen so far
 			if (lineNum.equals(1))
-				context.write(new Text("0"), new Text());
+				context.write(new LongWritable(0), new Text());
 		}
 	}
 

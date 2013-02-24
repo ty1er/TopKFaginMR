@@ -1,53 +1,21 @@
 package edu.ucr.cs236;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-import edu.ucr.cs236.RankSorting.RankSortingMapper;
-import edu.ucr.cs236.RankSorting.RankSortingReducer;
-import edu.ucr.cs236.RankSorting.RankSortingReduceKeyComparator;
 import edu.ucr.cs236.RankSorting.RankSortingGroupingComparator;
-
-//public class RankSortingTest {
-//	@Mock 
-//    private Mapper<LongWritable, Text, Text, Text>.Context context;
-//    private RankSortingMapper mapper;
-//    
-//    @Before
-//    public void setUp() {
-//        mapper = new RankSortingMapper();
-//        MockitoAnnotations.initMocks(this);
-//    }
-//    
-//    @Test
-//    public void testMap() throws IOException, InterruptedException {
-//        mapper.map(new LongWritable(0), new Text("1 0.9 0.8 0.7"), context);
-//        
-//        verify(context, times(1)).write(new Text("p1"), new Text("o1:0.9"));
-//        verify(context, times(1)).write(new Text("p2"), new Text("o1:0.8"));
-//        verify(context, times(1)).write(new Text("p3"), new Text("o1:0.7"));
-//        
-//        verifyNoMoreInteractions(context);
-//    }
-//    
-//}
+import edu.ucr.cs236.RankSorting.RankSortingMapper;
+import edu.ucr.cs236.RankSorting.RankSortingReduceKeyComparator;
+import edu.ucr.cs236.RankSorting.RankSortingReducer;
 
 public class RankSortingTest {
 
@@ -97,12 +65,12 @@ public class RankSortingTest {
 	public void testMapReduce() {
 		mapReduceDriver.withInput(new LongWritable(), new Text("1	0.9	0.8	0.7"));
 		mapReduceDriver.withInput(new LongWritable(), new Text("2	1	0.8	0.95"));
-		mapReduceDriver.withOutput(new IntWritable(0), new Text("p1:o2:1"));
-		mapReduceDriver.withOutput(new IntWritable(1), new Text("p1:o1:0.9"));
-		mapReduceDriver.withOutput(new IntWritable(0), new Text("p2:o1:0.8"));
-		mapReduceDriver.withOutput(new IntWritable(1), new Text("p2:o2:0.8"));
-		mapReduceDriver.withOutput(new IntWritable(0), new Text("p3:o2:0.95"));
-		mapReduceDriver.withOutput(new IntWritable(1), new Text("p3:o1:0.7"));
+		mapReduceDriver.withOutput(new IntWritable(1), new Text("p1:o2:1"));
+		mapReduceDriver.withOutput(new IntWritable(2), new Text("p1:o1:0.9"));
+		mapReduceDriver.withOutput(new IntWritable(1), new Text("p2:o1:0.8"));
+		mapReduceDriver.withOutput(new IntWritable(2), new Text("p2:o2:0.8"));
+		mapReduceDriver.withOutput(new IntWritable(1), new Text("p3:o2:0.95"));
+		mapReduceDriver.withOutput(new IntWritable(2), new Text("p3:o1:0.7"));
 		mapReduceDriver.runTest();
 	}
 }
