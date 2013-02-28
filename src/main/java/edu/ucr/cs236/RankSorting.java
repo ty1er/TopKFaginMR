@@ -65,8 +65,10 @@ public class RankSorting {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			int i = 1;
-			for (Text t : values)
-				context.write(new IntWritable(i++),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
+			for (Text t : values){
+				context.write(new IntWritable(i),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t + ":r" + i));//new Text(key.toString().substring(0, key.find(":"))), t);
+				i++;
+			}
 		}
 	}
 

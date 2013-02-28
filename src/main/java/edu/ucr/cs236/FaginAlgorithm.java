@@ -72,22 +72,7 @@ public class FaginAlgorithm extends Configured implements Tool {
 			}
 		}
 		jc.stop();
-
-		long topKObjects = 0;
-		int iteration = 1;
-		Path outputPath3 = outputPath2;
-		while (topKObjects <= Long.valueOf(args[3])) {
-			Job faginStepJob = FaginStep.createJob(iteration, Integer.valueOf(args[2]));
-			// faginStepJob.getCounters().findCounter(FaginStepTopkObjectCounter.numOfObjects).setValue(1);
-			FileInputFormat.addInputPath(faginStepJob, outputPath3);
-			outputPath3 = new Path(args[1] + "/faginStep" + iteration++);
-			if (hdfs.exists(outputPath3))
-				hdfs.delete(outputPath3, true);
-			FileOutputFormat.setOutputPath(faginStepJob, outputPath3);
-			
-			faginStepJob.waitForCompletion(true);
-			topKObjects = faginStepJob.getCounters().findCounter(FaginStepTopkObjectCounter.numOfObjects).getValue();
-		}
+		
 		return 0;
 	}
 }

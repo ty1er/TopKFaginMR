@@ -7,6 +7,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
+import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -20,7 +21,7 @@ public class FaginPreprocess {
 		job.setJarByClass(RankSorting.class);
 
 		job.setInputFormatClass(KeyValueTextInputFormat.class);
-		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+		job.setOutputKeyClass(TextOutputFormat.class);
 
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
@@ -52,7 +53,10 @@ public class FaginPreprocess {
 		protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			StringBuffer sb = new StringBuffer();
 			for (Text value : values)
-				sb.append(value.toString()).append(";");
+			{
+				String[] item = value.toString().split(":");
+				sb.append(item[0].toString()).append(":").append(item[2].toString()).append(";");
+			}
 			sb.deleteCharAt(sb.length() - 1);
 			Long lineNum = Long.valueOf(key.toString().substring(0, key.toString().indexOf(":")));
 			context.write(new LongWritable(lineNum), new Text(sb.toString()));
