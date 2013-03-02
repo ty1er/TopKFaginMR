@@ -1,6 +1,7 @@
 package edu.ucr.cs236;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IntWritable;
@@ -30,7 +31,7 @@ public class LineSorting {
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 
-		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(LineSortingMapper.class);
@@ -43,70 +44,35 @@ public class LineSorting {
 		return job;
 	}
 
-	/*
-	 	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
+	// input format:    line     pid:oid:val
+	// output format:   oid:line     line
+	public static class LineSortingMapper extends Mapper<Text, Text, Text, Text> {
 
 		@Override
-		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-			String[] object = value.toString().split("\t");
-			StringBuilder sb = new StringBuilder();
-			for (int i = 1; i < object.length; i++) {
-				if (object[i] != null && object[i] != "") {
-					Text propertyName = new Text(sb.append(i).append(":").append(object[i]).toString());
-					sb.setLength(0);
-					Text objectRank = new Text(sb.append(object[0]).append(":").append(object[i]).toString());
-					sb.setLength(0);
-					context.write(propertyName, objectRank);
-				}
-			}
-		}
-
-	}
-	 */
-	public static class LineSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
-
-		@Override
-		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-			String[] object = value.toString().split("\t");
-			StringBuilder sb = new StringBuilder();
-			for(int i = 1; i < object.length; i++){
-				if(object[i] != null && object[i] != ""){
-					Text oid = new Text(object[i].toString().substring(0, object[i].toString().indexOf(":")).toString());
-					Text oidk = new Text(sb.append(oid).append(":").append(object[0]).toString());
-					sb.setLength(0);
-					Text line = new Text(sb.append(object[0]).toString());
-					sb.setLength(0);
-					context.write(oidk, line);
-				}
-			}
+		protected void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+			String oidk = value.toString().substring(value.toString().indexOf(":") + 1);
+			context.write(new Text(oidk.toString().substring(0, oidk.toString().indexOf(":")) + ":" + key), new Text(key)); 
+			// key = oid:line, value = line
 		}
 	}
 
 	
-	public static class LineSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
+	public static class LineSortingReducer extends Reducer<Text, Text, Text, Text> {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
-			int i = 1;
-			for (Text t : values){
-				context.write(new IntWritable(i), new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
-				i++;
-			}
+			StringBuffer sb = new StringBuffer();
+			Iterator<Text> iter = values.iterator();
+			Text last = iter.next();
+			if (last != null)
+				sb.append(last);
+			do {
+				last = iter.next();
+			} while(last != null);
+			context.write(new Text(key.toString().substring(0, key.toString().indexOf(":"))), new Text(sb.toString()));
+
 		}
 	}
 	
-	/*
-	public static class RankSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
-		@Override
-		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
-			int i = 1;
-			for (Text t : values){
-				context.write(new IntWritable(i),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
-				i++;
-			}
-		}
-	}
-	}
-	*/
 	
 	public final class LineSortingReduceKeyComparator extends WritableComparator {
 		protected LineSortingReduceKeyComparator() {
@@ -154,6 +120,6 @@ public class LineSorting {
 			String name = key.toString().substring(0, key.toString().indexOf(":"));
 			return name.hashCode() % numPartitions;
 		}
-
 	}
+	
 }
