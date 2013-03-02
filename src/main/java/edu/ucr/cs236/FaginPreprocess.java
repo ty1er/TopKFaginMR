@@ -13,7 +13,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+//import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 public class FaginPreprocess {
 	public static Job createJob() throws IOException {
@@ -31,7 +31,7 @@ public class FaginPreprocess {
 
 		job.setMapperClass(FaginPreprocessMapper.class);
 		job.setReducerClass(FaginPreprocessReducer.class);
-		
+
 		job.setGroupingComparatorClass(FaginPreprocessGroupingComparator.class);
 		job.setSortComparatorClass(FaginPreprocessSortComparator.class);
 		job.setPartitionerClass(FaginPreprocessPartitioner.class);
@@ -53,16 +53,13 @@ public class FaginPreprocess {
 		protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			StringBuffer sb = new StringBuffer();
 			for (Text value : values)
-			{
-				String[] item = value.toString().split(":");
-				sb.append(item[0].toString()).append(":").append(item[2].toString()).append(";");
-			}
+				sb.append(value.toString()).append("\t");
 			sb.deleteCharAt(sb.length() - 1);
 			Long lineNum = Long.valueOf(key.toString().substring(0, key.toString().indexOf(":")));
 			context.write(new LongWritable(lineNum), new Text(sb.toString()));
 			//producing extra line with lineNum 0 to store objects seen so far
-			if (lineNum.equals(1))
-				context.write(new LongWritable(0), new Text());
+			//if (lineNum.equals(1))
+				//context.write(new LongWritable(0), new Text());
 		}
 	}
 

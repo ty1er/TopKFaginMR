@@ -26,8 +26,6 @@ public class FaginAlgorithm extends Configured implements Tool {
 	public int run(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 
 		Job sortingJob = RankSorting.createJob();
-		// setConf(sortingJob.getConfiguration());
-
 		FileSystem hdfs = FileSystem.get(sortingJob.getConfiguration());
 		Path outputPath1 = new Path(args[1] + "/sorting");
 		if (hdfs.exists(outputPath1))
@@ -42,35 +40,55 @@ public class FaginAlgorithm extends Configured implements Tool {
 			hdfs.delete(outputPath2, true);
 		FileInputFormat.addInputPath(preprocessJob, outputPath1);
 		FileOutputFormat.setOutputPath(preprocessJob, outputPath2);
+		
+		Job linesJob = LineSorting.createJob();
+		Path outputPath3 = new Path(args[1] + "/lines");
+		if (hdfs.exists(outputPath3))
+			hdfs.delete(outputPath3, true);
+		FileInputFormat.addInputPath(linesJob, outputPath2);
+		FileOutputFormat.setOutputPath(linesJob, outputPath3);
+		linesJob.setNumReduceTasks(Integer.parseInt(args[3]));
+		/*
+		Job objsortingJob = ObjSorting.createJob();
+		Path outputPath3 = new Path(args[1] + "/objsorting"); //(objsortingJob.getConfiguration());
+		if (hdfs.exists(outputPath3))
+			hdfs.delete(outputPath3, true);
+		FileInputFormat.addInputPath(objsortingJob, outputPath2);
+		FileOutputFormat.setOutputPath(objsortingJob, outputPath3);
+		*/
+		
 
 		ControlledJob controlledSortingJob = new ControlledJob(sortingJob.getConfiguration());
 		ControlledJob controlledPreprocessJob = new ControlledJob(preprocessJob.getConfiguration());
-		// ControlledJob controlledFaginStepJob = new
-		// ControlledJob(faginStepJob.getConfiguration());
+		ControlledJob controlledLinesJob = new ControlledJob(linesJob.getConfiguration());
+		//ControlledJob controlledObjSortingJob = new ControlledJob(objsortingJob.getConfiguration());
 
 		controlledPreprocessJob.addDependingJob(controlledSortingJob);
-		// controlledFaginStepJob.addDependingJob(controlledPreprocessJob);
+		controlledLinesJob.addDependingJob(controlledPreprocessJob);
 
 		JobControl jc = new JobControl("FaginAlgorithm");
 		jc.addJob(controlledSortingJob);
 		jc.addJob(controlledPreprocessJob);
-		// jc.addJob(controlledFaginStepJob);
+		jc.addJob(controlledLinesJob);
+		//jc.addJob(controlledObjSortingJob);
 
 		Thread runjobc = new Thread(jc);
 		runjobc.start();
 
+		
 		while (!jc.allFinished()) {
 			System.out.println("Jobs in waiting state: " + jc.getWaitingJobList().size());
-			System.out.println("Jobs in ready state: " + jc.getReadyJobsList().size());
+			//System.out.println("Jobs in ready state: " + jc.getReadyJobsList().size());
 			System.out.println("Jobs in running state: " + jc.getRunningJobList().size());
 			System.out.println("Jobs in success state: " + jc.getSuccessfulJobList().size());
 			System.out.println("Jobs in failed state: " + jc.getFailedJobList().size());
 			System.out.println("\n");
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(500);
 			} catch (Exception e) {
 			}
 		}
+		
 		jc.stop();
 		
 		return 0;

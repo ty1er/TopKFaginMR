@@ -8,7 +8,8 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
-import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
+import org.apache.hadoop.mapreduce.Mapper.Context;
+//import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -16,12 +17,12 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-public class RankSorting {
+public class LineSorting {
 
 	public static Job createJob() throws IOException {
 
-		Job job = Job.getInstance(new Configuration(), "RankSorting"); //new Job(new Configuration(), "RankSorting");
-		job.setJarByClass(RankSorting.class);
+		Job job = Job.getInstance(new Configuration(), "LineSorting"); 
+		job.setJarByClass(LineSorting.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
@@ -32,17 +33,18 @@ public class RankSorting {
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(Text.class);
 
-		job.setMapperClass(RankSortingMapper.class);
-		job.setReducerClass(RankSortingReducer.class);
+		job.setMapperClass(LineSortingMapper.class);
+		job.setReducerClass(LineSortingReducer.class);
 
-		job.setSortComparatorClass(RankSortingReduceKeyComparator.class);
-		job.setGroupingComparatorClass(RankSortingGroupingComparator.class);
-		job.setPartitionerClass(RankSortingPartitioner.class);
+		job.setSortComparatorClass(LineSortingReduceKeyComparator.class);
+		job.setGroupingComparatorClass(LineSortingGroupingComparator.class);
+		job.setPartitionerClass(LineSortingPartitioner.class);
 
 		return job;
 	}
 
-	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
+	/*
+	 	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -60,7 +62,39 @@ public class RankSorting {
 		}
 
 	}
+	 */
+	public static class LineSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
+		@Override
+		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+			String[] object = value.toString().split("\t");
+			StringBuilder sb = new StringBuilder();
+			for(int i = 1; i < object.length; i++){
+				if(object[i] != null && object[i] != ""){
+					Text oid = new Text(object[i].toString().substring(0, object[i].toString().indexOf(":")).toString());
+					Text oidk = new Text(sb.append(oid).append(":").append(object[0]).toString());
+					sb.setLength(0);
+					Text line = new Text(sb.append(object[0]).toString());
+					sb.setLength(0);
+					context.write(oidk, line);
+				}
+			}
+		}
+	}
+
+	
+	public static class LineSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
+		@Override
+		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
+			int i = 1;
+			for (Text t : values){
+				context.write(new IntWritable(i), new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
+				i++;
+			}
+		}
+	}
+	
+	/*
 	public static class RankSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -71,13 +105,11 @@ public class RankSorting {
 			}
 		}
 	}
-
-	/**
-	 * @author iabsalyamov This comparator implement sorting of the values in
-	 *         reducer's iterator according to object's rank
-	 */
-	public static final class RankSortingReduceKeyComparator extends WritableComparator {
-		protected RankSortingReduceKeyComparator() {
+	}
+	*/
+	
+	public final class LineSortingReduceKeyComparator extends WritableComparator {
+		protected LineSortingReduceKeyComparator() {
 			super(Text.class, true);
 		}
 
@@ -98,9 +130,9 @@ public class RankSorting {
 
 	}
 
-	public static final class RankSortingGroupingComparator extends WritableComparator {
+	public final class LineSortingGroupingComparator extends WritableComparator {
 
-		protected RankSortingGroupingComparator() {
+		protected LineSortingGroupingComparator() {
 			super(Text.class, true);
 		}
 
@@ -115,7 +147,7 @@ public class RankSorting {
 		}
 	}
 
-	private static final class RankSortingPartitioner extends Partitioner<Text, Text> {
+	final class LineSortingPartitioner extends Partitioner<Text, Text> {
 
 		@Override
 		public int getPartition(Text key, Text value, int numPartitions) {
