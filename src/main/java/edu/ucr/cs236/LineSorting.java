@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class LineSorting {
@@ -28,7 +29,7 @@ public class LineSorting {
 		job.setJarByClass(LineSorting.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(IntWritable.class);
@@ -43,7 +44,7 @@ public class LineSorting {
 	}
 
 	// input format:    line     pid:oid:val
-	// output format:   oid:line     line
+	// output format:   oid     line
 	public static class LineSortingMapper extends Mapper<IntWritable, Text, Text, IntWritable> {
 
 		@Override
@@ -57,8 +58,8 @@ public class LineSorting {
 	
 	public static class LineSortingReducer extends Reducer<Text, IntWritable, Text, Text> {
 		@Override
-		// input:  oid:line   line
-		// output: oid:line1, line2, line3, ... (choose max and min)
+		// input:  oid   line
+		// output: oid:(max : min)
 		protected void reduce(Text key, java.lang.Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			StringBuffer sb = new StringBuffer();
 			int max = Integer.MIN_VALUE;

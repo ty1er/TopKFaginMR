@@ -41,15 +41,24 @@ public class FaginAlgorithm extends Configured implements Tool {
 		FileInputFormat.addInputPath(LinesJob, outputPath1);
 		FileOutputFormat.setOutputPath(LinesJob, outputPath2);
 		
+		Job EndJob = EndSorting.createJob();
+		Path outputPath3 = new Path(args[1] + "/end");
+		if (hdfs.exists(outputPath3))
+			hdfs.delete(outputPath3, true);
+		FileInputFormat.addInputPath(EndJob, outputPath2);
+		FileOutputFormat.setOutputPath(EndJob, outputPath3);
 
 		ControlledJob controlledSortingJob = new ControlledJob(sortingJob.getConfiguration());
 		ControlledJob controlledLinesJob = new ControlledJob(LinesJob.getConfiguration());
+		ControlledJob controlledEndJob = new ControlledJob(EndJob.getConfiguration());
 		
 		controlledLinesJob.addDependingJob(controlledSortingJob);
+		controlledEndJob.addDependingJob(controlledLinesJob);
 
 		JobControl jc = new JobControl("FaginAlgorithm");
 		jc.addJob(controlledSortingJob);
 		jc.addJob(controlledLinesJob);
+		jc.addJob(controlledEndJob);
 
 		Thread runjobc = new Thread(jc);
 		runjobc.start();
