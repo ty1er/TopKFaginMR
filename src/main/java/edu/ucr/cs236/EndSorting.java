@@ -20,10 +20,13 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class EndSorting {
 
-	public static Job createJob() throws IOException {
+	protected static int topk;
+	
+	public static Job createJob(int topkNum) throws IOException {
+		topk = topkNum;
 
 		Job job = Job.getInstance(new Configuration(), "EndSorting"); 
-		job.setJarByClass(LineSorting.class);
+		job.setJarByClass(EndSorting.class);
 
 		//job.setInputFormatClass(TextInputFormat.class);
 		job.setInputFormatClass(SequenceFileInputFormat.class);
@@ -33,7 +36,7 @@ public class EndSorting {
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 
-		job.setOutputKeyClass(Text.class);
+		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(EndSortingMapper.class);
@@ -49,17 +52,19 @@ public class EndSorting {
 	public static class EndSortingMapper extends Mapper<Text, Text, Text, Text> {
 
 		// input:  oid  first:last
-		// output: oid:first:last  first:last
+		// output: topk:last  first:last
 		@Override
 		protected void map(Text key, Text value, Context context) throws IOException, InterruptedException {
-			context.write(new Text("A" + ":" + key + ":" + value), value);
+			//String[] item = value.toString().split(":");
+			context.write(new Text(topk + ":" + value.toString().substring(value.toString().indexOf(":")+1)), value);
 		}
 	}
 
-	public static class EndSortingReducer extends Reducer<Text, Text, Text, Text> {
-		protected void reduce(Text key, Text valuee, Context context) throws IOException, InterruptedException {
-			String[] object = key.toString().split(":");
-			context.write(new Text(object[1].toString()),new Text(object[2] + ":" + object[3]));
+	public static class EndSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
+		protected void reduce(Text key, Text value, Context context) throws IOException, InterruptedException {
+			//String[] object = value.toString().split(":");
+			int i = 1;
+			context.write(new IntWritable(i++),new Text(value));
 		}
 	}
 
@@ -78,7 +83,7 @@ public class EndSorting {
 
 			int nameCompare = o1Items[0].compareTo(o2Items[0]);
 			if (nameCompare == 0) {
-				return Integer.valueOf(o1Items[3]).compareTo(Integer.valueOf(o2Items[3]));
+				return Integer.valueOf(o1Items[1]).compareTo(Integer.valueOf(o2Items[1]));
 			}
 			return nameCompare;
 		}
@@ -107,7 +112,7 @@ public class EndSorting {
 		@Override
 		public int getPartition(Text key, Text value, int numPartitions) {
 			String name = key.toString().substring(0, key.toString().indexOf(":"));
-			return name.hashCode() % numPartitions;
+			return name.hashCode();// % numPartitions;
 		}
 
 	}
