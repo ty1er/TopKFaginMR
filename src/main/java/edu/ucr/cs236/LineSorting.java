@@ -6,6 +6,7 @@ import java.util.Iterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
@@ -29,10 +30,10 @@ public class LineSorting {
 		job.setJarByClass(LineSorting.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
-		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
 
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(IntWritable.class);
+		job.setMapOutputValueClass(LongWritable.class);
 
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
@@ -45,32 +46,30 @@ public class LineSorting {
 
 	// input format:    line     pid:oid:val
 	// output format:   oid     line
-	public static class LineSortingMapper extends Mapper<IntWritable, Text, Text, IntWritable> {
+	public static class LineSortingMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
 
 		@Override
-		protected void map(IntWritable key, Text value, Context context) throws IOException, InterruptedException {
+		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String oidk = value.toString().substring(value.toString().indexOf(":") + 1);
 			context.write(new Text(oidk.toString().substring(0, oidk.toString().indexOf(":"))), key); 
-			// key = oid:line, value = line
 		}
 	}
 
 	
-	public static class LineSortingReducer extends Reducer<Text, IntWritable, Text, Text> {
+	public static class LineSortingReducer extends Reducer<Text, LongWritable, Text, Text> {
 		@Override
 		// input:  oid   line
-		// output: oid:(max : min)
-		protected void reduce(Text key, java.lang.Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-			StringBuffer sb = new StringBuffer();
-			int max = Integer.MIN_VALUE;
-			int min = Integer.MAX_VALUE;
-			for(IntWritable value : values) {
+		// output: (max : min)
+		protected void reduce(Text key, java.lang.Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+			long max = Long.MIN_VALUE;
+			long min = Long.MAX_VALUE;
+			for(LongWritable value : values) {
 				if (value.get() > max)
 					max = value.get();
 				if (value.get() < min)
 					min = value.get();
 			}
-			context.write(key, new Text(min + ":" + max));
+			context.write(null, new Text(min + ":" + max));
 		}
 	}
 	

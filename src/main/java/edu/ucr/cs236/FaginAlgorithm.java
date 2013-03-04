@@ -41,7 +41,7 @@ public class FaginAlgorithm extends Configured implements Tool {
 		FileInputFormat.addInputPath(LinesJob, outputPath1);
 		FileOutputFormat.setOutputPath(LinesJob, outputPath2);
 		
-		Job EndJob = EndSorting.createJob();
+		Job EndJob = EndSorting.createJob(Long.valueOf(args[3]));
 		Path outputPath3 = new Path(args[1] + "/end");
 		if (hdfs.exists(outputPath3))
 			hdfs.delete(outputPath3, true);
@@ -66,7 +66,6 @@ public class FaginAlgorithm extends Configured implements Tool {
 		
 		while (!jc.allFinished()) {
 			System.out.println("Jobs in waiting state: " + jc.getWaitingJobList().size());
-			//System.out.println("Jobs in ready state: " + jc.getReadyJobsList().size());
 			System.out.println("Jobs in running state: " + jc.getRunningJobList().size());
 			System.out.println("Jobs in success state: " + jc.getSuccessfulJobList().size());
 			System.out.println("Jobs in failed state: " + jc.getFailedJobList().size());
