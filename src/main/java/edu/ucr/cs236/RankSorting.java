@@ -53,6 +53,8 @@ public class RankSorting {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 1; i < object.length; i++) {
 				if (object[i] != null && object[i] != "") {
+					if(i == 3 || i == 4 || i == 5 || i == 6)
+						continue;
 					Text propertyName = new Text(sb.append(i).append(":").append(object[i]).toString());
 					sb.setLength(0);
 					Text objectRank = new Text(sb.append(object[0]).append(":").append(object[i]).toString());
