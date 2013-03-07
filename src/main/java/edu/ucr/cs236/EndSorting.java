@@ -49,8 +49,8 @@ public class EndSorting {
 
 	public static class EndSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
-		// input:  oid  first:last
-		// output: topk:last  first:last
+		// input:  objectId  firstOccurence:lastOccurence
+		// output: lastOccurence  firstOccurence:lastOccurence
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			//String[] item = value.toString().split(":");
@@ -58,12 +58,14 @@ public class EndSorting {
 		}
 	}
 
+	// input: lastOccurence  firstOccurence:lastOccurence
+	// output: -
 	public static class EndSortingReducer extends Reducer<Text, Text, LongWritable, Text> {
 		@Override
 		protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			//String[] object = value.toString().split(":");
 			long i = 1;
-			long lastcheck = topk;
+			long lastcheck = Long.MAX_VALUE;
 			long lastline = 0;
 			for(Text t : values){
 				if(i == topk){
@@ -71,12 +73,11 @@ public class EndSorting {
 				}
 				long firstcheck = Long.valueOf(t.toString().substring(0, t.toString().indexOf(":")));
 				if(firstcheck <= lastcheck){
-					context.write(new LongWritable(i++), new Text(t));
+					context.write(new LongWritable(i++), t);
 					lastline = Long.valueOf(t.toString().substring(t.toString().indexOf(":")+1).toString());
 					context.getCounter(TopkCounter.numOfObjects).setValue(lastline);
 					// lastline is the one we want!!!!!
 				}
-				i++;
 			}
 			context.write(new LongWritable(lastline), new Text("I am the last line !!!!!"));
 		}

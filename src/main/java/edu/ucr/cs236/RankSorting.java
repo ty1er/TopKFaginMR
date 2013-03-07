@@ -43,6 +43,8 @@ public class RankSorting {
 		return job;
 	}
 
+	// input format:    objectId		value1 value2 .. valuen
+	// output format:   propId:value	objectId:value
 	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 		@Override
@@ -62,12 +64,15 @@ public class RankSorting {
 
 	}
 
+
+	// input format:    propId:value	objectId:value
+	// output format:   lineNum			propId:objectId:value
 	public static class RankSortingReducer extends Reducer<Text, Text, LongWritable, Text> {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			int i = 1;
 			for (Text t : values){
-				context.write(new LongWritable(i),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
+				context.write(new LongWritable(i),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));
 				i++;
 			}
 		}

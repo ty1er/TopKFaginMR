@@ -44,8 +44,8 @@ public class LineSorting {
 		return job;
 	}
 
-	// input format:    line     pid:oid:val
-	// output format:   oid     line
+	// input format:    lineNum     propId:objectIid:value
+	// output format:   objectId     lineNum
 	public static class LineSortingMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
 
 		@Override
@@ -55,11 +55,10 @@ public class LineSorting {
 		}
 	}
 
-	
+	// input:  objectId     lineNum
+	// output: objectId		firstOccurence:lastOccurence
 	public static class LineSortingReducer extends Reducer<Text, LongWritable, Text, Text> {
 		@Override
-		// input:  oid   line
-		// output: (max : min)
 		protected void reduce(Text key, java.lang.Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
 			long max = Long.MIN_VALUE;
 			long min = Long.MAX_VALUE;
