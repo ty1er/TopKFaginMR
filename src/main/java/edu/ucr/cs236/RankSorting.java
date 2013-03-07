@@ -14,6 +14,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class RankSorting {
@@ -24,12 +25,12 @@ public class RankSorting {
 		job.setJarByClass(RankSorting.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 
-		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputKeyClass(LongWritable.class);
 		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(RankSortingMapper.class);
@@ -50,9 +51,9 @@ public class RankSorting {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 1; i < object.length; i++) {
 				if (object[i] != null && object[i] != "") {
-					Text propertyName = new Text(sb.append("p").append(i).append(":").append(object[i]).toString());
+					Text propertyName = new Text(sb.append(i).append(":").append(object[i]).toString());
 					sb.setLength(0);
-					Text objectRank = new Text(sb.append("o").append(object[0]).append(":").append(object[i]).toString());
+					Text objectRank = new Text(sb.append(object[0]).append(":").append(object[i]).toString());
 					sb.setLength(0);
 					context.write(propertyName, objectRank);
 				}
@@ -61,12 +62,14 @@ public class RankSorting {
 
 	}
 
-	public static class RankSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
+	public static class RankSortingReducer extends Reducer<Text, Text, LongWritable, Text> {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			int i = 1;
-			for (Text t : values)
-				context.write(new IntWritable(i++),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
+			for (Text t : values){
+				context.write(new LongWritable(i),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
+				i++;
+			}
 		}
 	}
 

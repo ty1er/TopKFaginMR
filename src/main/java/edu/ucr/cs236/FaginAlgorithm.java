@@ -26,8 +26,6 @@ public class FaginAlgorithm extends Configured implements Tool {
 	public int run(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 
 		Job sortingJob = RankSorting.createJob();
-		// setConf(sortingJob.getConfiguration());
-
 		FileSystem hdfs = FileSystem.get(sortingJob.getConfiguration());
 		Path outputPath1 = new Path(args[1] + "/sorting");
 		if (hdfs.exists(outputPath1))
@@ -36,32 +34,38 @@ public class FaginAlgorithm extends Configured implements Tool {
 		FileOutputFormat.setOutputPath(sortingJob, outputPath1);
 		sortingJob.setNumReduceTasks(Integer.parseInt(args[2]));
 
-		Job preprocessJob = FaginPreprocess.createJob();
-		Path outputPath2 = new Path(args[1] + "/preprocess");
+		Job LinesJob = LineSorting.createJob();
+		Path outputPath2 = new Path(args[1] + "/lines");
 		if (hdfs.exists(outputPath2))
 			hdfs.delete(outputPath2, true);
-		FileInputFormat.addInputPath(preprocessJob, outputPath1);
-		FileOutputFormat.setOutputPath(preprocessJob, outputPath2);
+		FileInputFormat.addInputPath(LinesJob, outputPath1);
+		FileOutputFormat.setOutputPath(LinesJob, outputPath2);
+		
+		Job EndJob = EndSorting.createJob(Long.valueOf(args[3]));
+		Path outputPath3 = new Path(args[1] + "/end");
+		if (hdfs.exists(outputPath3))
+			hdfs.delete(outputPath3, true);
+		FileInputFormat.addInputPath(EndJob, outputPath2);
+		FileOutputFormat.setOutputPath(EndJob, outputPath3);
 
 		ControlledJob controlledSortingJob = new ControlledJob(sortingJob.getConfiguration());
-		ControlledJob controlledPreprocessJob = new ControlledJob(preprocessJob.getConfiguration());
-		// ControlledJob controlledFaginStepJob = new
-		// ControlledJob(faginStepJob.getConfiguration());
-
-		controlledPreprocessJob.addDependingJob(controlledSortingJob);
-		// controlledFaginStepJob.addDependingJob(controlledPreprocessJob);
+		ControlledJob controlledLinesJob = new ControlledJob(LinesJob.getConfiguration());
+		ControlledJob controlledEndJob = new ControlledJob(EndJob.getConfiguration());
+		
+		controlledLinesJob.addDependingJob(controlledSortingJob);
+		controlledEndJob.addDependingJob(controlledLinesJob);
 
 		JobControl jc = new JobControl("FaginAlgorithm");
 		jc.addJob(controlledSortingJob);
-		jc.addJob(controlledPreprocessJob);
-		// jc.addJob(controlledFaginStepJob);
+		jc.addJob(controlledLinesJob);
+		jc.addJob(controlledEndJob);
 
 		Thread runjobc = new Thread(jc);
 		runjobc.start();
 
+		
 		while (!jc.allFinished()) {
 			System.out.println("Jobs in waiting state: " + jc.getWaitingJobList().size());
-			System.out.println("Jobs in ready state: " + jc.getReadyJobsList().size());
 			System.out.println("Jobs in running state: " + jc.getRunningJobList().size());
 			System.out.println("Jobs in success state: " + jc.getSuccessfulJobList().size());
 			System.out.println("Jobs in failed state: " + jc.getFailedJobList().size());
@@ -71,23 +75,8 @@ public class FaginAlgorithm extends Configured implements Tool {
 			} catch (Exception e) {
 			}
 		}
+		
 		jc.stop();
-
-		long topKObjects = 0;
-		int iteration = 1;
-		Path outputPath3 = outputPath2;
-		while (topKObjects <= Long.valueOf(args[3])) {
-			Job faginStepJob = FaginStep.createJob(iteration, Integer.valueOf(args[2]));
-			// faginStepJob.getCounters().findCounter(FaginStepTopkObjectCounter.numOfObjects).setValue(1);
-			FileInputFormat.addInputPath(faginStepJob, outputPath3);
-			outputPath3 = new Path(args[1] + "/faginStep" + iteration++);
-			if (hdfs.exists(outputPath3))
-				hdfs.delete(outputPath3, true);
-			FileOutputFormat.setOutputPath(faginStepJob, outputPath3);
-			
-			faginStepJob.waitForCompletion(true);
-			topKObjects = faginStepJob.getCounters().findCounter(FaginStepTopkObjectCounter.numOfObjects).getValue();
-		}
 		return 0;
 	}
 }
