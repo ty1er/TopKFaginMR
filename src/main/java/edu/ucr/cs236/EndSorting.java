@@ -20,7 +20,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class EndSorting {
 
-	protected static long topk;
+	public static long topk;
 	
 	public static Job createJob(long topkNum) throws IOException {
 		topk = topkNum;

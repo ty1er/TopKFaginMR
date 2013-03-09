@@ -26,7 +26,8 @@ public class RankSorting {
 
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
-
+		//job.setOutputFormatClass(TextOutputFormat.class);
+		
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 

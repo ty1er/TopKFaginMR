@@ -75,8 +75,23 @@ public class FaginAlgorithm extends Configured implements Tool {
 			} catch (Exception e) {
 			}
 		}
-		
 		jc.stop();
+	
+
+ 		Path outputPath4 = new Path(args[1] + "/topk");
+		
+ 		long TopkLine = 3;
+ 		//   How to pass the TopkCounter as the input for this job???   //
+ 		//long TopkLine = Long.valueOf(EndJob.getCounters().findCounter(TopkCounter.numOfObjects).getValue());
+		Job TopkJob = TopK.createJob(TopkLine);
+		FileInputFormat.addInputPath(TopkJob, outputPath1);
+		if (hdfs.exists(outputPath4))
+			hdfs.delete(outputPath4, true);
+		FileOutputFormat.setOutputPath(TopkJob, outputPath4);
+
+		TopkJob.waitForCompletion(true);
+		System.out.println("Finish the Fagin Algorithm to find the top-k object!");
+
 		return 0;
 	}
 }
