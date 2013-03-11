@@ -3,19 +3,15 @@ package edu.ucr.cs236;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
-import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class EndSorting {
@@ -53,7 +49,6 @@ public class EndSorting {
 		// output: lastOccurence  firstOccurence:lastOccurence
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-			//String[] item = value.toString().split(":");
 			context.write(new Text(value.toString().substring(value.toString().indexOf(":")+1)), value);
 		}
 	}
@@ -63,7 +58,6 @@ public class EndSorting {
 	public static class EndSortingReducer extends Reducer<Text, Text, LongWritable, Text> {
 		@Override
 		protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-			//String[] object = value.toString().split(":");
 			long i = 1;
 			long lastcheck = Long.MAX_VALUE;
 			long lastline = 0;
@@ -73,13 +67,11 @@ public class EndSorting {
 				}
 				long firstcheck = Long.valueOf(t.toString().substring(0, t.toString().indexOf(":")));
 				if(firstcheck <= lastcheck){
-					context.write(new LongWritable(i++), t);
 					lastline = Long.valueOf(t.toString().substring(t.toString().indexOf(":")+1).toString());
-					context.getCounter(TopkCounter.numOfObjects).setValue(lastline);
-					// lastline is the one we want!!!!!
+					context.getCounter(TopkCounter.maxLineNumber).setValue(lastline);
 				}
 			}
-			context.write(new LongWritable(lastline), new Text("I am the last line !!!!!"));
+			context.write(new LongWritable(lastline), null);
 		}
 	}
 

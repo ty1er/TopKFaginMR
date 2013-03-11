@@ -1,18 +1,12 @@
 package edu.ucr.cs236;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.client.HdfsUtils;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
-import org.apache.hadoop.mapreduce.lib.jobcontrol.JobControl;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -33,65 +27,51 @@ public class FaginAlgorithm extends Configured implements Tool {
 		FileInputFormat.addInputPath(sortingJob, new Path(args[0]));
 		FileOutputFormat.setOutputPath(sortingJob, outputPath1);
 		sortingJob.setNumReduceTasks(Integer.parseInt(args[2]));
+		boolean sortingJobCompletion = sortingJob.waitForCompletion(true);
+		if (!sortingJobCompletion)
+			return 0;
 
-		Job LinesJob = LineSorting.createJob();
+		Job linesJob = LineSorting.createJob();
 		Path outputPath2 = new Path(args[1] + "/lines");
 		if (hdfs.exists(outputPath2))
 			hdfs.delete(outputPath2, true);
-		FileInputFormat.addInputPath(LinesJob, outputPath1);
-		FileOutputFormat.setOutputPath(LinesJob, outputPath2);
+		FileInputFormat.addInputPath(linesJob, outputPath1);
+		FileOutputFormat.setOutputPath(linesJob, outputPath2);
+		boolean lineJobCompletion =linesJob.waitForCompletion(true);
+		if (!lineJobCompletion)
+			return 0;
 		
-		Job EndJob = EndSorting.createJob(Long.valueOf(args[3]));
+		Job endJob = EndSorting.createJob(Long.valueOf(args[3]));
 		Path outputPath3 = new Path(args[1] + "/end");
 		if (hdfs.exists(outputPath3))
 			hdfs.delete(outputPath3, true);
-		FileInputFormat.addInputPath(EndJob, outputPath2);
-		FileOutputFormat.setOutputPath(EndJob, outputPath3);
+		FileInputFormat.addInputPath(endJob, outputPath2);
+		FileOutputFormat.setOutputPath(endJob, outputPath3);
+		boolean endJobCompletion = endJob.waitForCompletion(true);
+		if (!endJobCompletion)
+			return 0;
 
-		ControlledJob controlledSortingJob = new ControlledJob(sortingJob.getConfiguration());
-		ControlledJob controlledLinesJob = new ControlledJob(LinesJob.getConfiguration());
-		ControlledJob controlledEndJob = new ControlledJob(EndJob.getConfiguration());
-		
-		controlledLinesJob.addDependingJob(controlledSortingJob);
-		controlledEndJob.addDependingJob(controlledLinesJob);
-
-		JobControl jc = new JobControl("FaginAlgorithm");
-		jc.addJob(controlledSortingJob);
-		jc.addJob(controlledLinesJob);
-		jc.addJob(controlledEndJob);
-
-		Thread runjobc = new Thread(jc);
-		runjobc.start();
-
-		
-		while (!jc.allFinished()) {
-			System.out.println("Jobs in waiting state: " + jc.getWaitingJobList().size());
-			System.out.println("Jobs in running state: " + jc.getRunningJobList().size());
-			System.out.println("Jobs in success state: " + jc.getSuccessfulJobList().size());
-			System.out.println("Jobs in failed state: " + jc.getFailedJobList().size());
-			System.out.println("\n");
-			try {
-				Thread.sleep(5000);
-			} catch (Exception e) {
-			}
-		}
-		jc.stop();
-	
-
+ 		long maxLine = Long.valueOf(endJob.getCounters().findCounter(TopkCounter.maxLineNumber).getValue());
+ 		Job topKJob = TopK.createJob(maxLine);
  		Path outputPath4 = new Path(args[1] + "/topk");
-		
- 		long TopkLine = 3;
- 		//   How to pass the TopkCounter as the input for this job???   //
- 		//long TopkLine = Long.valueOf(EndJob.getCounters().findCounter(TopkCounter.numOfObjects).getValue());
-		Job TopkJob = TopK.createJob(TopkLine);
-		FileInputFormat.addInputPath(TopkJob, outputPath1);
+		FileInputFormat.addInputPath(topKJob, outputPath1);
 		if (hdfs.exists(outputPath4))
 			hdfs.delete(outputPath4, true);
-		FileOutputFormat.setOutputPath(TopkJob, outputPath4);
+		FileOutputFormat.setOutputPath(topKJob, outputPath4);
+		boolean topKJobCompletion = topKJob.waitForCompletion(true);
+		if (!topKJobCompletion)
+			return 0;
+		
+		Job topKFilterJob = TopKFilter.createJob(Long.valueOf(args[3]));
+ 		Path outputPath5 = new Path(args[1] + "/result");
+		FileInputFormat.addInputPath(topKFilterJob, outputPath4);
+		if (hdfs.exists(outputPath5))
+			hdfs.delete(outputPath5, true);
+		FileOutputFormat.setOutputPath(topKFilterJob, outputPath5);
+		boolean topKFilterJobCompletion = topKFilterJob.waitForCompletion(true);
+		if (!topKFilterJobCompletion)
+			return 0;
 
-		TopkJob.waitForCompletion(true);
-		System.out.println("Finish the Fagin Algorithm to find the top-k object!");
-
-		return 0;
+		return 1;
 	}
 }
