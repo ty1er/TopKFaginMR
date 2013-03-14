@@ -70,6 +70,7 @@ public class EndSorting {
 					lastline = Long.valueOf(t.toString().substring(t.toString().indexOf(":")+1).toString());
 					context.getCounter(TopkCounter.maxLineNumber).setValue(lastline);
 				}
+				i++;
 			}
 			context.write(new LongWritable(lastline), null);
 		}
