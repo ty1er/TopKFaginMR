@@ -18,10 +18,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class TopKFilter {
 
-	public static long topK;
-
-	public static Job createJob(long topKNum) throws IOException {
-		topK = topKNum;
+	public static Job createJob() throws IOException {
 
 		Job job = Job.getInstance(new Configuration(), "TopKFilter");
 		job.setJarByClass(TopKFilter.class);
@@ -54,9 +51,12 @@ public class TopKFilter {
 	public static class TopKFilterReducer extends Reducer<FloatWritable, LongWritable, LongWritable, FloatWritable> {
 		@Override
 		protected void reduce(FloatWritable key, java.lang.Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+			int topk = context.getConfiguration().getInt("topK", -1);
 			for (LongWritable value : values) {
-				if (topK-- > 0)
-				context.write(value, key);
+				if (topk-- > 0) {
+					context.write(value, key);
+					context.getConfiguration().setInt("topK", topk);
+				}
 			}
 		}
 	}

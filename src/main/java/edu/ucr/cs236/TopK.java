@@ -17,11 +17,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class TopK {
 
-	public static long maxLine;
-
-	public static Job createJob(long maxLineNum) throws IOException {
-		maxLine = maxLineNum;
-
+	public static Job createJob() throws IOException {
 		Job job = Job.getInstance(new Configuration(), "TopK");
 		job.setJarByClass(TopK.class);
 
@@ -47,6 +43,7 @@ public class TopK {
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String oid = value.toString().substring(value.toString().indexOf(":") + 1);
+			int maxLine = context.getConfiguration().getInt("maxLineNum", -1);
 			if (key.get() <= maxLine)
 				context.write(new LongWritable(Long.valueOf(oid.toString().substring(0, oid.toString().indexOf(":")))),
 						new FloatWritable(Float.valueOf(oid.toString().substring(oid.toString().indexOf(":") + 1))));

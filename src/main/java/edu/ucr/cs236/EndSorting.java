@@ -16,11 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class EndSorting {
 
-	public static long topk;
-	
-	public static Job createJob(long topkNum) throws IOException {
-		topk = topkNum;
-
+	public static Job createJob() throws IOException {
 		Job job = Job.getInstance(new Configuration(), "EndSorting"); 
 		job.setJarByClass(EndSorting.class);
 
@@ -62,12 +58,14 @@ public class EndSorting {
 			long lastcheck = Long.MAX_VALUE;
 			long lastline = 0;
 			for(Text t : values){
+				int topk = context.getConfiguration().getInt("topK", -1);
 				if(i == topk){
 					lastcheck = Long.valueOf(t.toString().substring(t.toString().indexOf(":")+1).toString());
 				}
 				long firstcheck = Long.valueOf(t.toString().substring(0, t.toString().indexOf(":")));
 				if(firstcheck <= lastcheck){
 					lastline = Long.valueOf(t.toString().substring(t.toString().indexOf(":")+1).toString());
+					context.write(new LongWritable(i), t);
 					context.getCounter(TopkCounter.maxLineNumber).setValue(lastline);
 				}
 				i++;

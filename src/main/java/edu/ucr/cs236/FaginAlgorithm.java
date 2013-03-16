@@ -41,7 +41,8 @@ public class FaginAlgorithm extends Configured implements Tool {
 		if (!lineJobCompletion)
 			return 0;
 		
-		Job endJob = EndSorting.createJob(Long.valueOf(args[3]));
+		Job endJob = EndSorting.createJob();
+		endJob.getConfiguration().setLong("topK", Integer.valueOf(args[3]));
 		Path outputPath3 = new Path(args[1] + "/end");
 		if (hdfs.exists(outputPath3))
 			hdfs.delete(outputPath3, true);
@@ -51,8 +52,8 @@ public class FaginAlgorithm extends Configured implements Tool {
 		if (!endJobCompletion)
 			return 0;
 
- 		long maxLine = Long.valueOf(endJob.getCounters().findCounter(TopkCounter.maxLineNumber).getValue());
- 		Job topKJob = TopK.createJob(maxLine);
+ 		Job topKJob = TopK.createJob();
+ 		topKJob.getConfiguration().setLong("maxLineNum", endJob.getCounters().findCounter(TopkCounter.maxLineNumber).getValue());
  		Path outputPath4 = new Path(args[1] + "/topk");
 		FileInputFormat.addInputPath(topKJob, outputPath1);
 		if (hdfs.exists(outputPath4))
@@ -62,7 +63,8 @@ public class FaginAlgorithm extends Configured implements Tool {
 		if (!topKJobCompletion)
 			return 0;
 		
-		Job topKFilterJob = TopKFilter.createJob(Long.valueOf(args[3]));
+		Job topKFilterJob = TopKFilter.createJob();
+		topKFilterJob.getConfiguration().setLong("topK", Integer.valueOf(args[3]));
  		Path outputPath5 = new Path(args[1] + "/result");
 		FileInputFormat.addInputPath(topKFilterJob, outputPath4);
 		if (hdfs.exists(outputPath5))
