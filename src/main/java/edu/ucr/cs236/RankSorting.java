@@ -46,14 +46,16 @@ public class RankSorting {
 
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+			int normalization = context.getConfiguration().getInt("normalization", 0);
 			String[] object = value.toString().split("\t");
 			StringBuilder sb = new StringBuilder();
 			for (int i = 1; i < object.length; i++) {
 				if (object[i] != null && object[i] != "") {
 					if(i == 1 || i == 2 || i == 7 || i == 8 || i == 9) {
-						Text propertyName = new Text(sb.append(i).append(":").append(object[i]).toString());
+						float rank = Float.parseFloat(object[i])+normalization;
+						Text propertyName = new Text(sb.append(i).append(":").append(rank).toString());
 						sb.setLength(0);
-						Text objectRank = new Text(sb.append(object[0]).append(":").append(object[i]).toString());
+						Text objectRank = new Text(sb.append(object[0]).append(":").append(rank).toString());
 						sb.setLength(0);
 						context.write(propertyName, objectRank);
 					}

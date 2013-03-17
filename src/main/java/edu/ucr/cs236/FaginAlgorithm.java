@@ -20,13 +20,16 @@ public class FaginAlgorithm extends Configured implements Tool {
 	public int run(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 
 		Job sortingJob = RankSorting.createJob();
+		if (args.length > 3) {
+			sortingJob.getConfiguration().setLong("normalization", Integer.valueOf(args[3]));
+		}
 		FileSystem hdfs = FileSystem.get(sortingJob.getConfiguration());
 		Path outputPath1 = new Path(args[1] + "/sorting");
 		if (hdfs.exists(outputPath1))
 			hdfs.delete(outputPath1, true);
 		FileInputFormat.addInputPath(sortingJob, new Path(args[0]));
 		FileOutputFormat.setOutputPath(sortingJob, outputPath1);
-		sortingJob.setNumReduceTasks(Integer.parseInt(args[2]));
+//		sortingJob.setNumReduceTasks(Integer.parseInt(args[2]));
 		boolean sortingJobCompletion = sortingJob.waitForCompletion(true);
 		if (!sortingJobCompletion)
 			return 0;
@@ -42,7 +45,7 @@ public class FaginAlgorithm extends Configured implements Tool {
 			return 0;
 		
 		Job endJob = EndSorting.createJob();
-		endJob.getConfiguration().setLong("topK", Integer.valueOf(args[3]));
+		endJob.getConfiguration().setLong("topK", Integer.valueOf(args[2]));
 		Path outputPath3 = new Path(args[1] + "/end");
 		if (hdfs.exists(outputPath3))
 			hdfs.delete(outputPath3, true);
@@ -64,7 +67,7 @@ public class FaginAlgorithm extends Configured implements Tool {
 			return 0;
 		
 		Job topKFilterJob = TopKFilter.createJob();
-		topKFilterJob.getConfiguration().setLong("topK", Integer.valueOf(args[3]));
+		topKFilterJob.getConfiguration().setLong("topK", Integer.valueOf(args[2]));
  		Path outputPath5 = new Path(args[1] + "/result");
 		FileInputFormat.addInputPath(topKFilterJob, outputPath4);
 		if (hdfs.exists(outputPath5))
