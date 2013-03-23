@@ -5,6 +5,33 @@
 \usepackage{subfig}
 \usepackage{amsmath}
 \usepackage{float}
+\usepackage{listings}
+\usepackage{color}
+%configuring listing properties
+\lstset{ 
+language=java, 
+basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+numbers=none,                   % where to put the line-numbers
+xleftmargin=2em,
+numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
+stepnumber=2,                   % the step between two line-numbers. If it's 1, each line will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=yes,                   % adds a frame around the code
+tabsize=2,                      % sets default tabsize to 2 spaces
+captionpos=b,                   % sets the caption-position to bottom
+breaklines=true,                % sets automatic line breaking
+breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+escapeinside={(*}{*)},         % if you want to add a comment within your code
+morekeywords={*,...},            % if you want to add more keywords to the set
+keywordstyle=\color[rgb]{0,0,1},
+commentstyle=\color[rgb]{0.133,0.545,0.133},
+stringstyle=\color[rgb]{0.627,0.126,0.941},
+keepspaces=true
+}
 
 \setlength{\textheight}{730pt}
 \setlength{\topmargin}{-0.3in}
@@ -19,14 +46,56 @@
 
 \maketitle
 
-\section*{Description}
+\section{Description}
 
-\section*{Preprocessing}
+Our goal for this project was to implement Fagin Algorithm for searching top-k element in dataset on distributed MapReduce environment.
+We used Hadoop as a MapReduce framework, therefore all source code is written in Java.
+The rest of the report is organized as follows: Section \ref{sec:preprocess} is describing initial datasets preprocessing approach, Section \ref{sec:iterative} presents na\"{\i}ve implementation of Fagin algorithm using Hadoop, Section \ref{sec:mapreduce} provides detail description of our MapReduce approach, Section \ref{sec:experiments} shows experimental results.
 
-\section*{Iterative algorithm}
+\section{Preprocessing}
+\label{sec:preprocess}
 
-\section*{MapReduce implementation}
+Since the initial datasets are unordered and have different attribute ranges we need to do initial data preprocessing in order to start Fagin algorithm.
+Preprocessing step could we done in a different way, as opposed to the target algorithm (i.e. running special script on dataset file), but this limits program's portability and brings additional steps to run it, therefore we implemented preprocessing step also as a MapReduce job, which prepares data for subsequent jobs (since their execution is chained).
+Results presented in Section \ref{sec:experiments} do not include execution time of this step.
 
-\section*{Experimental evaluation}
+Dataset preprocessing could be divided into several parts:
+\begin{enumerate}
+	\item Attribute range normalization
+		Attribute values from dataset1 lie in range [-1;1], which is not appropriate range for calculating object score, because our score function is additive and adding attributes which have values less then 0 do not maintain monotonic increase property.
+		
+		In order to normalize attribute values we just add 1 to every item.
+		This will result in attribute values having range [0;2], which satisfies monotonic condition, however we need to take into account this fact when we will calculate final score for top-k objects and subtract extra 1's from this result. The value that we should add (which is 1) differs for various datasets (dataset2 doesn't need normalization at all), therefore it is passed as an optional runtime parameter, which default value is 0.  
+
+		This process is done in map phase of rank soring preprocess step.
+	\item Attribute filtering
+		Since our score function looks like this $f(t) = sum( t.attr1, t.attr2, t.attr7, t.attr8, t.attr9)$ and does not include every object's attribute we need to filter them out.
+
+		This process done in map phase of the next rank soring preprocess step.
+ 	\item Attribute rank sorting
+ 		For Fagin algorithm objects need to be sorted in decreasing order of their attribute values separately for each individual attribute.
+
+ 		This sorting us done as a distinct MapReudce job. 
+ 		In a map phase we are extracting objects along with their property values and emitting pairs \{propId:value,objectId:value\}:    
+ 		\lstinputlisting[language=java,linerange={55-56,58-58,60-60}]{../src/main/java/edu/ucr/cs236/RankSorting.java}
+ 		
+ 		The reason why we duplicate attribute value in key is the following: Hadoop is capable of sorting key-value pairs in reducer, but this sorting could be applied only to key. Later these pairs are sorted during shuffle phase against the value in sortComparator, before they are passer to reducer:
+		\lstinputlisting[language=java,linerange={99-102}]{../src/main/java/edu/ucr/cs236/RankSorting.java}
+ 		
+ 		However by default MapReduce framework will call reducer for each different key (which is propId:value). In order to redirect pairs with the same propId we implement custom partitioner:
+ 		\lstinputlisting[language=java,linerange={129-130}]{../src/main/java/edu/ucr/cs236/RankSorting.java}
+
+ 		Reduce phase is simply writing already sorted results with the appropriate line number (we will use this line number later): 
+ 		\lstinputlisting[language=java,linerange={74-78}]{../src/main/java/edu/ucr/cs236/RankSorting.java}
+\end{enumerate}
+
+\section{Iterative algorithm}
+\label{sec:iterative}
+
+\section{MapReduce implementation}
+\label{sec:mapreduce}
+
+\section{Experimental evaluation}
+\label{sec:experiments}
 
 \end{document}
