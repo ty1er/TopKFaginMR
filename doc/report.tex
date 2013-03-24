@@ -98,4 +98,186 @@ Dataset preprocessing could be divided into several parts:
 \section{Experimental evaluation}
 \label{sec:experiments}
 
+PS: RankSorting is not a part of Fagin Algorithm.
+
+\begin{table}[htbp]
+    \caption{Results of dataset1, topk = 5 (sec)}
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|c|c|}
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 1 Mapper 1 Reducer & 16 & 9 & 8 & 9 & 9  \\
+            Reducer time & 1 Mapper 1 Reducer & 3 & 2 & 2 & 2 & 2   \\
+            Total time & 1 Mapper 1 Reducer & 22 & 15 & 14 & 15 & 14 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 35 Reducer: 8 Total: 58}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 2 Mappers 1 Reducer & 19 & 16 & 8 & 16 & 9  \\
+            Reducer time & 2 Mappers 1 Reducer & 3 & 3 & 2 & 2 & 2   \\
+            Total time & 2 Mappers 1 Reducer & 30 & 22 & 14 & 22 & 14 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 49 Reducer: 9 Total: 72}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 4 Mappers 1 Reducer & 28 & 33 & 8 & 31 & 9  \\
+            Reducer time & 4 Mappers 1 Reducer & 12 & 3 & 2 & 2 & 2   \\
+            Total time & 4 Mappers 1 Reducer & 46 & 40 & 14 & 37 & 14 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 81 Reducer: 9 Total: 105}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 1 Mapper 2 Reducers & 15 & 9 & 8 & 9 & 12  \\
+            Reducer time & 1 Mapper 2 Reducers & 6 & 2 & 2 & 3 & 1   \\
+            Total time & 1 Mapper 2 Reducers & 25 & 15 & 15 & 16 & 19 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 38 Reducer: 8 Total: 65}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 2 Mappers 2 Reducers & 19 & 16 & 8 & 16 & 12  \\
+            Reducer time & 2 Mappers 2 Reducers & 8 & 2 & 2 & 2 & 1   \\
+            Total time & 2 Mappers 2 Reducers & 31 & 21 & 14 & 21 & 18 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 52 Reducer: 7 Total: 74}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 4 Mappers 2 Reducers & 27 & 30 & 8 & 31 & 13  \\
+            Reducer time & 4 Mappers 2 Reducers & 12 & 2 & 2 & 2 & 1   \\
+            Total time & 4 Mappers 2 Reducers & 45 & 36 & 14 & 37 & 19 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 81    Reducer: 7  Total: 106}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 1 Mapper 4 Reducers & 15 & 9 & 8 & 10 & 20  \\
+            Reducer time & 1 Mapper 4 Reducers & 4 & 2 & 2 & 2 & 3  \\
+            Total time & 1 Mapper 4 Reducers & 25 & 15 & 14 & 15 & 31 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 47 Reducer: 9 Total: 75}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 2 Mappers 4 Reducers & 19 & 17 & 8 & 16 & 21  \\
+            Reducer time & 2 Mappers 4 Reducers & 7 & 2 & 2 & 2 & 3  \\
+            Total time & 2 Mappers 4 Reducers & 31 & 22 & 14 & 22 & 30 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 62 Reducer: 9 Total: 88}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 4 Mappers 4 Reducers & 26 & 28 & 8 & 32 & 20  \\
+            Reducer time & 4 Mappers 4 Reducers & 12 & 2 & 2 & 2 & 2   \\
+            Total time & 4 Mappers 4 Reducers & 45 & 34 & 14 & 37 & 30 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 88 Reducer: 8 Total: 115}  \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+
+\begin{table}[htbp]
+    \caption{Results of dataset2, topk = 5 (sec)}
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|c|c|}
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 1 Mapper 1 Reducer & 41 & 12 & 9 & 12 & 10  \\
+            Reducer time & 1 Mapper 1 Reducer & 6 & 3 & 2 & 2 & 2   \\
+            Total time & 1 Mapper 1 Reducer & 51 & 20 & 15 & 19 & 16 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 43 Reducer: 9 Total: 70}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 2 Mappers 1 Reducer & 43 & 18 & 9 & 19 & 11  \\
+            Reducer time & 2 Mappers 1 Reducer & 8 & 3 & 2 & 2 & 2   \\
+            Total time & 2 Mappers 1 Reducer & 57 & 24 & 15 & 26 & 16 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 57 Reducer: 9 Total: 81}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 4 Mappers 1 Reducer & 50 & 31 & 9 & 32 & 11  \\
+            Reducer time & 4 Mappers 1 Reducer & 15 & 3 & 2 & 2 & 2   \\
+            Total time & 4 Mappers 1 Reducer & 72 & 38 & 15 & 39 & 16 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 83 Reducer: 9 Total: 108}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 1 Mapper 2 Reducers & 41 & 11 & 9 & 12 & 14  \\
+            Reducer time & 1 Mapper 2 Reducers & 6 & 3 & 2 & 2 & 2   \\
+            Total time & 1 Mapper 2 Reducers & 51 & 18 & 15 & 19 & 21 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 46 Reducer: 9 Total: 73}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 2 Mappers 2 Reducers & 42 & 18 & 9 & 19 & 14  \\
+            Reducer time & 2 Mappers 2 Reducers & 8 & 3 & 2 & 3 & 2   \\
+            Total time & 2 Mappers 2 Reducers & 55 & 26 & 15 & 26 & 21 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 60 Reducer: 10 Total: 88}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 4 Mappers 2 Reducers & 50 & 30 & 9 & 32 & 14  \\
+            Reducer time & 4 Mappers 2 Reducers & 16 & 2 & 2 & 2 & 2   \\
+            Total time & 4 Mappers 2 Reducers & 72 & 27 & 15 & 40 & 21 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 85 Reducer: 8 Total: 103}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 1 Mapper 4 Reducers & 39 & 11 & 9 & 13 & 22  \\
+            Reducer time & 1 Mapper 4 Reducers & 5 & 3 & 2 & 2 & 3  \\
+            Total time & 1 Mapper 4 Reducers & 49 & 18 & 15 & 19 & 31 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 55 Reducer: 10 Total: 83}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 2 Mappers 4 Reducers & 43 & 18 & 9 & 19 & 22  \\
+            Reducer time & 2 Mappers 4 Reducers & 9 & 3 & 2 & 2 & 2   \\
+            Total time & 2 Mappers 4 Reducers & 56 & 25 & 15 & 26 & 31 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 68 Reducer: 9 Total: 97}  \\
+            \hline
+            \hline
+             & Configuration & RankSorting & LineSorting & EndSorting & Topk & Filter  \\
+            \hline
+            Mapper time & 4 Mappers 4 Reducers & 51 & 32 & 9 & 33 & 22  \\
+            Reducer time & 4 Mappers 4 Reducers & 15 & 2 & 2 & 3 & 2   \\
+            Total time & 4 Mappers 4 Reducers & 72 & 38 & 15 & 39 & 32 \\
+            \hline
+            Fagin Time & \multicolumn{6}{|c|}{Mapper: 96 Reducer: 9 Total: 115}  \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+
 \end{document}
