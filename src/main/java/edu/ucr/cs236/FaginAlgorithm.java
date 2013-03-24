@@ -34,8 +34,8 @@ public class FaginAlgorithm extends Configured implements Tool {
 		if (!sortingJobCompletion)
 			return 0;
 
-		Job linesJob = LineSorting.createJob();
-		Path outputPath2 = new Path(args[1] + "/lines");
+		Job linesJob = ObjectOccurrence.createJob();
+		Path outputPath2 = new Path(args[1] + "/occurrence");
 		if (hdfs.exists(outputPath2))
 			hdfs.delete(outputPath2, true);
 		FileInputFormat.addInputPath(linesJob, outputPath1);
@@ -55,9 +55,9 @@ public class FaginAlgorithm extends Configured implements Tool {
 		if (!endJobCompletion)
 			return 0;
 
- 		Job topKJob = TopK.createJob();
+ 		Job topKJob = ScoreCalculation.createJob();
  		topKJob.getConfiguration().setLong("maxLineNum", endJob.getCounters().findCounter(TopkCounter.maxLineNumber).getValue());
- 		Path outputPath4 = new Path(args[1] + "/topk");
+ 		Path outputPath4 = new Path(args[1] + "/score");
 		FileInputFormat.addInputPath(topKJob, outputPath1);
 		if (hdfs.exists(outputPath4))
 			hdfs.delete(outputPath4, true);

@@ -15,11 +15,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 //import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 
-public class TopK {
+public class ScoreCalculation {
 
 	public static Job createJob() throws IOException {
-		Job job = Job.getInstance(new Configuration(), "TopK");
-		job.setJarByClass(TopK.class);
+		Job job = Job.getInstance(new Configuration(), "ScoreCalculation");
+		job.setJarByClass(ScoreCalculation.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
@@ -30,15 +30,15 @@ public class TopK {
 		job.setOutputKeyClass(LongWritable.class);
 		job.setOutputValueClass(FloatWritable.class);
 
-		job.setMapperClass(TopKMapper.class);
-		job.setReducerClass(TopKReducer.class);
+		job.setMapperClass(ScoreCalculationMapper.class);
+		job.setReducerClass(ScoreCalculationReducer.class);
 
 		return job;
 	}
 
 	// input format: lineNum propId:objectIid:value
 	// output format: objectId value
-	public static class TopKMapper extends Mapper<LongWritable, Text, LongWritable, FloatWritable> {
+	public static class ScoreCalculationMapper extends Mapper<LongWritable, Text, LongWritable, FloatWritable> {
 
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -52,7 +52,7 @@ public class TopK {
 
 	// input: objectId value
 	// output: objectId sum of values
-	public static class TopKReducer extends Reducer<LongWritable, FloatWritable, LongWritable, FloatWritable> {
+	public static class ScoreCalculationReducer extends Reducer<LongWritable, FloatWritable, LongWritable, FloatWritable> {
 		@Override
 		protected void reduce(LongWritable key, java.lang.Iterable<FloatWritable> values, Context context) throws IOException, InterruptedException {
 			float attr = (float) 0.0;

@@ -11,12 +11,12 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-public class LineSorting {
+public class ObjectOccurrence {
 
 	public static Job createJob() throws IOException {
 
 		Job job = Job.getInstance(new Configuration(), "LineSorting"); 
-		job.setJarByClass(LineSorting.class);
+		job.setJarByClass(ObjectOccurrence.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
@@ -27,15 +27,15 @@ public class LineSorting {
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 
-		job.setMapperClass(LineSortingMapper.class);
-		job.setReducerClass(LineSortingReducer.class);
+		job.setMapperClass(ObjectOccurrenceMapper.class);
+		job.setReducerClass(ObjectOccurrenceReducer.class);
 
 		return job;
 	}
 
 	// input format:    lineNum     propId:objectIid:value
 	// output format:   objectId     lineNum
-	public static class LineSortingMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
+	public static class ObjectOccurrenceMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
 
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -46,7 +46,7 @@ public class LineSorting {
 
 	// input:  objectId     lineNum
 	// output: objectId		firstOccurence:lastOccurence
-	public static class LineSortingReducer extends Reducer<Text, LongWritable, Text, Text> {
+	public static class ObjectOccurrenceReducer extends Reducer<Text, LongWritable, Text, Text> {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
 			long max = Long.MIN_VALUE;
