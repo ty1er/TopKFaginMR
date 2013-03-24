@@ -1,6 +1,6 @@
 How to get the experimenttal results we got:
 
-a. We use the virturall machine "Demo VitualVox Image" provided by the website CS236 project.
+a. We use the virtural machine "Demo VitualVox Image" provided by the website of CS236 project.
 
 b. Produce the jar file:
     1. Use "Maven" to create the jar from source codes in eclipse.
@@ -24,7 +24,7 @@ c. Run jar on hadoop
     >> hadoop dfs -mkdir /user/cloudera/fagin
     >> hadoop dfs -mkdir /user/cloudera/fagin/input           [this is the input path]
     >> hadoop dfs -copyFromLocal dataset[1 or 2].txt /user/cloudera/fagin/input            
-    [make sure only on dataset file in /input per run, or you need to delete it before copy. >> hadoop dfs -rm /user/cloudera/fagin/input/* ]
+    [make sure only ONE dataset file in /input before running, or you need to delete it before copy. >> hadoop dfs -rm /user/cloudera/fagin/input/* ]
     2. Run the jar
     Usage: hadoop jar [your jar file name].jar [input path] [output path] [topk number]
     >> hadoop jar fagin.mapreduce-1.0-SNAPSHOT-job.jar /user/cloudera/fagin/input /user/cloudera/fagin/output 5
@@ -36,8 +36,11 @@ d. Show the topk results
 
 e. Check the execution time records
     The records are stored by the hadoop automatically in localhost
-    In every round of MapReduce runs, it contains this information in the terminal:
+    In every round of MapReduce run [5 M/R in our Fagin Algoritm], it contains this information in the terminal:
         The url to track the job: http://localhost.localdomain:8088/proxy/application_[job-id]
         Running job: job_[job-id]
     To see the record, copy the link to the browser.
     The webpage has JobName, Elapsed time, Average Map time, Average Reduce time, which are shown in our report.
+
+If you have any problems about running the Fagin program, free free to contact us.
+Thank you!
