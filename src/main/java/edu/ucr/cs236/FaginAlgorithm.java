@@ -29,7 +29,8 @@ public class FaginAlgorithm extends Configured implements Tool {
 			hdfs.delete(outputPath1, true);
 		FileInputFormat.addInputPath(sortingJob, new Path(args[0]));
 		FileOutputFormat.setOutputPath(sortingJob, outputPath1);
-//		sortingJob.setNumReduceTasks(Integer.parseInt(args[2]));
+        // To set the number of mapper in the Fagin Algorithm, just cancal the commit symbol
+        // sortingJob.setNumReduceTasks(2);
 		boolean sortingJobCompletion = sortingJob.waitForCompletion(true);
 		if (!sortingJobCompletion)
 			return 0;
@@ -73,6 +74,8 @@ public class FaginAlgorithm extends Configured implements Tool {
 		if (hdfs.exists(outputPath5))
 			hdfs.delete(outputPath5, true);
 		FileOutputFormat.setOutputPath(topKFilterJob, outputPath5);
+        // To set the number of reducer in the Fagin Algorithm, just cancal the commit symbol
+        // topKFilterJob.setNumReduceTasks(2);
 		boolean topKFilterJobCompletion = topKFilterJob.waitForCompletion(true);
 		if (!topKFilterJobCompletion)
 			return 0;

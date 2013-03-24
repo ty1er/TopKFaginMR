@@ -1,0 +1,110 @@
+dataset1:
+
+Top 5 objects:
+27004       2.230281
+27424       2.2268658
+28011       2.219926
+29042       2.2053034
+22883       2.176018
+
+1 mapper 1 reducer:
+    K     Rank       Line       End      Topk       Filter     History
+    5   22(16+3)    15(9+2)    14(8+2)   15(9+2)    14(9+2)      43-47
+2 mapper 1 reducer:
+    K     Rank:1M2R        Line:2M1R       End      Topk:2M1R     Filter     History
+    5      30(19+3)         22(16+3)     14(8+2)     22(16+2)     14(9+2)      98-102
+4 mapper 1 reducer:
+    K     Rank:1M4R        Line:4M1R       End      Topk:4M1R     Filter     History
+    5      46(28+12)        40(33+3)     14(8+2)     37(31+2)     14(9+2)      113-117
+
+1 mapper 2 reducers:
+    K       Rank        Line        End         Topk        Filter:1M2R     History
+    5       25(15+6)   15(9+2)     15(8+2)     16(9+3)     19(12+1)        178-182
+2 mappers 2 reducer:
+    K       Rank:1M2R       Line:2M1R       End         Topk:2M1R       Filter:1M2R     History
+    5       31(19+8)        21(16+2)        14(8+2)     21(16+2)        18(12+1)        183-187
+4 mappers 2 reducer:
+    K       Rank:1M4R       Line:4M1R       End         Topk:4M1R       Filter:1M2R     History
+    5       45(27+12)        36(30+2)       14(8+2)     37(31+2)        19(13+1)        188-192
+
+1 mapper 4 reducers:
+    K       Rank:1M1R       Line:1M1R       End         Topk:1M1R       Filter:1M4R     History
+    5       25(15+4)        15(9+2)         14(8+2)     15(10+2)        31(20+3)        193-197
+2 mappers 4 reducer:
+    K       Rank:1M2R       Line:2M1R       End         Topk:2M1R       Filter:1M4R     History
+    5       31(19+7)        22(17+2)        14(8+2)     22(16+2)        30(21+3)        198-202
+4 mappers 4 reducer:
+    K       Rank:1M4R       Line:4M1R       End         Topk:4M1R       Filter:1M4R     History
+    5       45(26+12)       34(28+2)        14(8+2)     37(32+2)        30(20+2)        203-207
+
+Others:
+1 mapper 1 reducer:
+    K     Rank       Line       End      Topk       Filter     History
+    25  23(16+4)    15(9+2)    14(8+2)   15(9+2)    14(9+2)      58-62
+    50  23(16+3)    16(9+3)    15(8+3)   15(10+2)   15(9+2)      73-77
+
+2 mapper 1 reducer:
+    K     Rank:1M2R        Line:2M1R       End      Topk:2M1R     Filter     History
+    25     30(19+6)         22(16+2)     14(8+2)     22(16+2)     14(9+2)      103-107
+    50     30(20+6)         22(16+3)     14(8+2)     22(17+2)     15(10+2)     108-112
+
+4 mapper 1 reducer:
+    K     Rank:1M4R        Line:4M1R       End      Topk:4M1R     Filter     History
+    25     47(28+12)        35(29+2)     14(8+2)     35(30+2)     14(9+2)      118-122
+    50     45(28+12)        34(29+2)     14(8+2)     36(31+2)     14(9+2)      122-127
+1 mapper 4 reducer:(only one output file has data, other 3 files are empty)
+    50     22(15+3)         15(9+2)      14(8+2)     15(9+2)      29(20+2)1M4R 128-132
+
+2 mapper 4 reducer:
+    25      30(20+6)1M2R    22(16+2)2M1R 22(8+2)     23(18+2)     30(20+3)1M4R 133-137
+
+/*----------------------------------------------------------------------------------------------------*/
+dataset2:
+
+Top 5 objects:
+51573       4.824392
+155886      4.794723
+4761        4.774817
+77207       4.7713537
+35256       4.7352095
+
+1 mapper 1 reducer:
+    K       Rank        Line        End     Topk        Filter      History
+    5       51(41+6)    20(12+3)    15(9+2) 19(12+2)    16(10+2)    138-142
+2 mapper 1 reducer:
+    K       Rank:1M2R       Line:2M1R       End         Topk:2M1R       Filter      History
+    5       57(43+8)        24(18+3)        15(9+2)     26(19+2)        16(11+2)    153-157
+4 mapper 1 reducer:
+    K       Rank:1M4R       Line:4M1R       End         Topk:4M1R       Filter      History
+    5       72(50+15)       38(31+3)        15(9+2)     39(32+2)        16(11+2)    213-217
+
+1 mapper 2 reducer:
+    K       Rank        Line        End         Topk        Filter:1M2R     History
+    5       51(41+6)    18(11+3)    15(9+2)     19(12+2)    21(14+2)        163-167
+2 mapper 2 reducer:
+    K       Rank:1M2R       Line:2M1R       End         Topk:2M1R       Filter:1M2R      History
+    5       55(42+8)        26(18+3)        15(9+2)     26(19+3)        21(14+2)        218-222
+4 mapper 2 reducer:
+    K       Rank:1M4R       Line:4M1R       End         Topk:4M1R       Filter:1M4R      History
+    5       72(50+16)        27(30+2)       15(9+2)     40(32+2)        21(14+2)        223-227
+
+1 mapper 4 reducer:
+    K       Rank:1M1R       Line:1M1R       End         Topk:1M1R       Filter:1M4R      History
+    5       49(39+5)        18(11+3)       15(9+2)      19(13+2)        31(22+3)        228-232
+2 mapper 4 reducer:
+    K       Rank:1M2R       Line:2M1R       End         Topk:2M1R       Filter:1M4R      History
+    5       56(43+9)        25(18+3)       15(9+2)      26(19+2)        31(22+2)        233-237
+4 mapper 4 reducer:
+    K       Rank:1M4R       Line:4M1R       End         Topk:4M1R       Filter:1M4R      History
+    5       72(51+15)       38(32+2)       15(9+2)      39(133+3)        32(22+2)        238-242
+
+
+Others:
+2 mapper 2 reducer:
+    K       Rank:1M2R       Line:2M1R       End         Topk:2M1R       Filter:1M2R     History
+    50      57(44+8)        25(18+2)        15(9+2)     26(19+2)        21(14+1)        168-172
+
+4 mapper 2 reducer:
+    K       Rank:1M4R       Line:4M1R       End         Topk:4M1R       Filter:1M2R     History
+    25      71(50+15)        39(32+3)       15(9+2)     39(32+2)        21(15+2)        173-177
+
