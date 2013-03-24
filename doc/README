@@ -42,5 +42,6 @@ e. Check the execution time records
     To see the record, copy the link to the browser.
     The webpage has JobName, Elapsed time, Average Map time, Average Reduce time, which are shown in our report.
 
+You can find the top 50 objects of two datasets in top50.txt.
 If you have any problems about running the Fagin program, feel free to contact us.
 Thank you!

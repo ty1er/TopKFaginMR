@@ -181,6 +181,27 @@ The experimental results for dataset1 and dataset2 are provided in Tables \ref{t
 
 Preprocessing step (RankSorting) is not a part added to total execution time.
 
+We fixed the topk number to be 5. When running the Fagin Algorithm, we can specify the topk number in the input parameter.
+
+\begin{table}[htbp]
+    \caption{Top 5 objects from hadoop}
+    \noindent\makebox[\textwidth]{
+        \begin{tabular}{|c|c|c|c|}
+            \hline
+            \multicolumn{2}{|c}{dataset1} & \multicolumn{2}{|c|}{dataset2} \\
+            \hline
+            object id & score & object id & score \\
+            \hline
+            27004 & 2.230281 & 51573 & 4.824392 \\
+            27424 & 2.226866 & 155886 & 4.794723 \\
+            28011 & 2.2199926 & 4761 & 4.774817 \\
+            29042 & 2.2053037 & 77207 & 4.7713537 \\
+            22883 & 2.1760178 & 35256 & 4.7352095\\
+            \hline
+        \end{tabular}
+    }
+\end{table}
+
 The results does not show any performance gain when we are increasing number of mappers or reducers.
 This could be explained by the number of facts:
 \begin{enumerate}
