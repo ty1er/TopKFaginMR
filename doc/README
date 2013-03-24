@@ -3,10 +3,9 @@ How to get the experimenttal results we got:
 a. We use the virtural machine "Demo VitualVox Image" provided by the website of CS236 project.
 
 b. Produce the jar file:
-    1. Use "Maven" to create the jar from source codes in eclipse.
-    2. Import with "Import-Maven-Existing Maven Project".
-    3. Right click on project's name and choose "Run As Maven Install" to build the project.
-    4. Step 3 creates a folder "target" with jar file "fagin.mapreduce-1.0-SNAPSHOT-job.jar".
+    1. Install "Maven". Add maven in directory to PATH.
+    2. Cd to project directory. Execute "mvn package" to build project
+    3. Step 2 creates a folder "target" with jar file "fagin.mapreduce-1.0-SNAPSHOT-job.jar".
 
 *. Configuration Mapper and Reducer numbers in source code.
    In FaginAlgorithm.java:
@@ -16,23 +15,24 @@ b. Produce the jar file:
         2. To set the number of Recuders, use
              topKFilterJob.setNumReduceTasks(2);
            in line 78.
-        3. Use "Run As Maven Insall" to recompile it before running on hadoop.
+        3. Recompile with Maven before running on hadoop.
 
 
 c. Run jar on hadoop
     1. Create folders and copy dataset into hadoop 
     >> hadoop dfs -mkdir /user/cloudera/fagin
     >> hadoop dfs -mkdir /user/cloudera/fagin/input           [this is the input path]
-    >> hadoop dfs -copyFromLocal dataset[1 or 2].txt /user/cloudera/fagin/input            
+    >> hadoop dfs -copyFromLocal dataset[1 or 2].txt /user/cloudera/fagin/input
     [make sure only ONE dataset file in /input before running, or you need to delete it before copy. >> hadoop dfs -rm /user/cloudera/fagin/input/* ]
     2. Run the jar
-    Usage: hadoop jar [your jar file name].jar [input path] [output path] [topk number]
-    >> hadoop jar fagin.mapreduce-1.0-SNAPSHOT-job.jar /user/cloudera/fagin/input /user/cloudera/fagin/output 5
+    Usage: hadoop jar [your jar file name].jar [input path] [output path] [topk number] [normalized = 1, not normalized = 0]
+    >> hadoop jar fagin.mapreduce-1.0-SNAPSHOT-job.jar /user/cloudera/fagin/input /user/cloudera/fagin/output 5 0
 
 d. Show the topk results
     The results would be in /user/cloudera/fagin/output/result
     >> hadoop dfs -cat /user/cloudera/fagin/output/result/part-r-00000
-    It will show you the topk objects with the values. [for dataset1, it is the normlized result, add 1.0 in each property]
+    It will show you the topk objects with the values. 
+    [if you set the last parameter to 1, it is the normalized result, add 1.0 in each property, so minue 5.0 at the last output. Actually, we don't neen to normalized in FA]
 
 e. Check the execution time records
     The records are stored by the hadoop automatically in localhost
@@ -42,5 +42,5 @@ e. Check the execution time records
     To see the record, copy the link to the browser.
     The webpage has JobName, Elapsed time, Average Map time, Average Reduce time, which are shown in our report.
 
-If you have any problems about running the Fagin program, free free to contact us.
+If you have any problems about running the Fagin program, feel free to contact us.
 Thank you!
