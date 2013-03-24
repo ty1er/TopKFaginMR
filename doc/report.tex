@@ -97,7 +97,7 @@ This was a straightforward implementation in terms of algorithm modification, ho
 \begin{enumerate}
     \item If we want to implement each iteration as distinct MapReduce job we need to came up with the input and output file format.
     These formats should be the same, because output of $i^{th}$ iteration is an input of $i+1^{th}$, which is not trivial thing to do.
-    \item Even after resolving file format issue we encountered another problem: in iterative approach each iteration need to do IO operations, reading it's input from HSDF and writing it's result back to disk.
+    \item Even after resolving file format issue we encountered another problem: in iterative approach each iteration need to do IO operations, reading it's input from HDFS and writing it's result back to disk.
     With the large datasets this becomes a major issue, which could be addressed only by changing Hadoop algorithm.
 \end{enumerate}
 
@@ -106,6 +106,60 @@ Special attention should be paid to IO, since it is the limiting factor for MapR
 
 \section{MapReduce implementation}
 \label{sec:mapreduce}
+
+Proposed implementation uses several chained MapReduce jobs, which introduces some overhead due to IO needed to intermediate results, however complexity of this overhead is constant, unlike the iterative approach, which is $O(n)$ algorithm.
+
+Let's describe each particular node in job chain:
+\begin{enumerate}
+    \item Object occurrence range extracting \label{enum:objOccurrence}
+    This step extracts the line number of first and last occurrence of every object in dataset.
+    Input is initial sorted dataset (including line numbers)
+    Map phase just emits \{key, value\} pair of object and line number when it was occurred:
+    \lstinputlisting[language=java,linerange={42-43}]{../src/main/java/edu/ucr/cs236/ObjectOccurrence.java}
+
+    Since shuffle will put line numbers for each object in distinct reduce calls all we need to do in reduce phase is peak minimum and maximum among them: 
+    \lstinputlisting[language=java,linerange={52-60}]{../src/main/java/edu/ucr/cs236/ObjectOccurrence.java}
+
+    \item End Sorting
+    Input for this job is he output of job \ref{enum:objOccurrence}.
+    This job discovers what should be the last line which we should read from original input in order to select top-k objects.
+    This is done by sorting first-last object occurrences according to last occurrence line number.
+    During map phase we just emit last occurrence as a key of \{key, value\} in order to perform sorting again it:
+    \lstinputlisting[language=java,linerange={48-48}]{../src/main/java/edu/ucr/cs236/EndSorting.java}
+
+    The main work is done in reducer: first we need to discover what is $k^{th}$ object last occurrence time, which corresponds to the line number when we would have k objects for which we have seen all attributes.
+    We will call last occurrence lastcheck.
+
+    Then we keep traversing the sorted list while the first occurrence of an object is less then lastcheck, which correspond to situation when we add this object to the list of objects seen so far.
+    When this condition will break we will capture first occurrence.
+    \lstinputlisting[language=java,linerange={60-71}]{../src/main/java/edu/ucr/cs236/EndSorting.java}
+
+    The obtained value would we passed to subsequent jobs though MapReduce counter.
+
+    \item Object score calculation
+    During this step we will read original algorithm input again in order to calculate object scores, but this time we will read only only first N lines of the file. THe value of N was discovered during End Sorting step.
+
+    Implementation is very simple, in mapper we just extract attribute value and emit \{objectId,value\} pair:
+    \lstinputlisting[language=java,linerange={45-49}]{../src/main/java/edu/ucr/cs236/ScoreCalculation.java}
+
+    Reducer just sums up these values to obtain object score:
+    \lstinputlisting[language=java,linerange={58-62}]{../src/main/java/edu/ucr/cs236/ScoreCalculation.java}
+
+    \item Top-k filtering
+    This is a final step, which filters first k objects from output obtained on previous step.
+    Hence the input is the output of Object score calculation job.
+
+    To perform filtering we need sort objects according their score.
+    This sorting is similar to sorting in preprocessing stage.
+    First we need to emit score as a key, therefore we just swap objectId and it's score (objectId in new value) in mapper:
+    \lstinputlisting[language=java,linerange={47-47}]{../src/main/java/edu/ucr/cs236/TopKFilter.java}
+
+    To sort object in decreasing scores order we implement custom comparator:
+    \lstinputlisting[language=java,linerange={71-71}]{../src/main/java/edu/ucr/cs236/TopKFilter.java}
+
+    During reduce phase just we need to output first k value as an algorithm output:
+    \lstinputlisting[language=java,linerange={54-60}]{../src/main/java/edu/ucr/cs236/TopKFilter.java}
+\end{enumerate}
 
 \section{Experimental evaluation}
 \label{sec:experiments}
