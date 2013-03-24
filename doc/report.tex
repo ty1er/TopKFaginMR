@@ -92,6 +92,18 @@ Dataset preprocessing could be divided into several parts:
 \section{Iterative algorithm}
 \label{sec:iterative}
 
+The very first version we devised tried to implement iterative approach (reading input line by line and maintaining list of objects seen so far) of the original Fagin algorithm on Hadoop.
+This was a straightforward implementation in terms of algorithm modification, however we faced several problems while doing this:
+\begin{enumerate}
+    \item If we want to implement each iteration as distinct MapReduce job we need to came up with the input and output file format.
+    These formats should be the same, because output of $i^{th}$ iteration is an input of $i+1^{th}$, which is not trivial thing to do.
+    \item Even after resolving file format issue we encountered another problem: in iterative approach each iteration need to do IO operations, reading it's input from HSDF and writing it's result back to disk.
+    With the large datasets this becomes a major issue, which could be addressed only by changing Hadoop algorithm.
+\end{enumerate}
+
+With all these problems we realized that we need to make a number of improvements to the original algorithm in order to execute it on Hadoop in effective manner.
+Special attention should be paid to IO, since it is the limiting factor for MapReduce tasks. 
+
 \section{MapReduce implementation}
 \label{sec:mapreduce}
 
