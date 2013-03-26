@@ -3,33 +3,31 @@ package edu.ucr.cs236;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
-import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 public class RankSorting {
 
 	public static Job createJob() throws IOException {
 
-		Job job = Job.getInstance(new Configuration(), "RankSorting"); //new Job(new Configuration(), "RankSorting");
+		Job job = Job.getInstance(new Configuration(), "RankSorting");
 		job.setJarByClass(RankSorting.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
-
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+		
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 
-		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputKeyClass(LongWritable.class);
 		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(RankSortingMapper.class);
@@ -42,31 +40,42 @@ public class RankSorting {
 		return job;
 	}
 
+	// input format:    objectId		value1 value2 .. valuen
+	// output format:   propId:value	objectId:value
 	public static class RankSortingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+			int normalization = context.getConfiguration().getInt("normalization", 0);
 			String[] object = value.toString().split("\t");
 			StringBuilder sb = new StringBuilder();
 			for (int i = 1; i < object.length; i++) {
 				if (object[i] != null && object[i] != "") {
-					Text propertyName = new Text(sb.append("p").append(i).append(":").append(object[i]).toString());
-					sb.setLength(0);
-					Text objectRank = new Text(sb.append("o").append(object[0]).append(":").append(object[i]).toString());
-					sb.setLength(0);
-					context.write(propertyName, objectRank);
+					if(i == 1 || i == 2 || i == 7 || i == 8 || i == 9) {
+						float rank = Float.parseFloat(object[i])+normalization;
+						Text propertyName = new Text(sb.append(i).append(":").append(rank).toString());
+						sb.setLength(0);
+						Text objectRank = new Text(sb.append(object[0]).append(":").append(rank).toString());
+						sb.setLength(0);
+						context.write(propertyName, objectRank);
+					}
 				}
 			}
 		}
 
 	}
 
-	public static class RankSortingReducer extends Reducer<Text, Text, IntWritable, Text> {
+
+	// input format:    propId:value	objectId:value
+	// output format:   lineNum			propId:objectId:value
+	public static class RankSortingReducer extends Reducer<Text, Text, LongWritable, Text> {
 		@Override
 		protected void reduce(Text key, java.lang.Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			int i = 1;
-			for (Text t : values)
-				context.write(new IntWritable(i++),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));//new Text(key.toString().substring(0, key.find(":"))), t);
+			for (Text t : values){
+				context.write(new LongWritable(i),new Text(key.toString().substring(0, key.toString().indexOf(":") + 1) + t));
+				i++;
+			}
 		}
 	}
 
