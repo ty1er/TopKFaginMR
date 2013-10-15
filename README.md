@@ -1,4 +1,8 @@
-CS-236-Project
+Project: implement Fagin Algorithm in Hadoop
 ==============
 
-CS-236-Project
+Team project.
+
+Every object has 9 properties with different score.
+
+Given a scoring function, find the **top-k** objects with the highest scores.
